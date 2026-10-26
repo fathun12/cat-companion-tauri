@@ -287,3 +287,5 @@ Hal yang belum diverifikasi AI penulis: isi lengkap `look.js` (kecuali 25 baris 
 - [26 Okt 2026] Ukuran installer: 108,7 MB (Cat Companion.exe 238 MB terpasang, hampir semuanya Electron; kode app hanya ~3 MB). electron-builder.yml: compression: maximum + afterPack (build/afterPack.js) menghapus dxcompiler.dll, vk_swiftshader.dll, vk_swiftshader_icd.json, vulkan-1.dll karena GPU dimatikan. Kalau kucing gagal tampil, kosongkan daftar REMOVE.
 
 - [26 Okt 2026] CABANG tauri-test (folder terpisah ..\cat-companion-tauri, git worktree): uji kelayakan Tauri 2. Tahap 1: jendela transparan always-on-top + click-through lewat thread Rust yang membaca cursor_position tiap 30 ms (Tauri hanya punya set_ignore_cursor_events tanpa forward). Master/Electron tidak disentuh.
+
+- [26 Okt 2026] REPO cat-companion-tauri (terpisah dari Electron). Tahap 2a: animasi idle + interaksi (hati, seret lewat thread Rust, bermain, elus, tidur) dan input global lewat crate rdev (hanya jenis aktivitas, tombol tidak dibaca). Pose mengetik/scroll/minum/perayaan, warna, tray, menu, Pomodoro belum dipindah.
