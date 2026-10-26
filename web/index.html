@@ -9,7 +9,7 @@
       filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
               drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff);
     }
-    .layer {
+    .group, .layer {
       position: absolute; left: 0; top: 0; width: 100%; height: 100%;
       image-rendering: pixelated; pointer-events: none;
     }
@@ -24,22 +24,119 @@
   <div id="stage"></div>
   <div id="info"></div>
   <script>
-    const layers = ['parts/ekor', 'body/badan', 'parts/tangan', 'parts/kuping', 'parts/kepala',
-                    'parts/kumis', 'eyes/mata', 'eyes/pupil'];
+    const SCALE = 3;          // 48 px x 3 = 144 px
+    const FOLLOW_HEAD = 3, FOLLOW_BODY = 1;
+    const FEET_X = 0.46, FEET_Y = 0.82;
+    const STAGE_CX = 130, STAGE_CY = 130; // pusat kucing di dalam jendela (px)
+
+    const rand = (a, b) => a + Math.random() * (b - a);
     const stage = document.getElementById('stage');
-    for (const l of layers) {
+
+    // ----- Susun layer (urutan sama dengan rig.json) -----
+    const defs = [
+      ['ekor', 'parts/ekor.png', 'body'], ['badan', 'body/badan.png', 'body'],
+      ['tangan', 'parts/tangan.png', 'body'], ['kuping', 'parts/kuping.png', 'head'],
+      ['kepala', 'parts/kepala.png', 'head'], ['kumis', 'parts/kumis.png', 'head'],
+      ['mata', 'eyes/mata.png', 'head'], ['mata_tidur', 'eyes/mata_tidur.png', 'head'],
+      ['pupil', 'eyes/pupil.png', 'head'],
+    ];
+    const G = {}, P = {};
+    for (const g of ['body', 'head']) {
+      G[g] = document.createElement('div');
+      G[g].className = 'group';
+      stage.appendChild(G[g]);
+    }
+    for (const [id, file, g] of defs) {
       const img = new Image();
       img.className = 'layer';
       img.draggable = false;
-      img.src = 'assets/cat/' + l + '.png';
-      stage.appendChild(img);
+      img.src = 'assets/cat/' + file;
+      G[g].appendChild(img);
+      P[id] = img;
     }
+    P.mata_tidur.style.display = 'none';
+    P.ekor.style.transformOrigin = '70% 80%';
+    P.kuping.style.transformOrigin = '46% 14%';
+    G.head.style.transformOrigin = '50% 45%';
+    G.body.style.transformOrigin = (FEET_X * 100) + '% ' + (FEET_Y * 100) + '%';
 
+    // ----- Posisi kursor dari Rust (event "cursor") -----
+    let curX = 0, curY = 0, lastCurMove = -10000;
+    window.__TAURI__.event.listen('cursor', (e) => {
+      const [x, y] = e.payload;
+      if (Math.abs(x - curX) > 1 || Math.abs(y - curY) > 1) lastCurMove = performance.now();
+      curX = x; curY = y;
+    });
+
+    // ----- Animasi idle -----
+    let prevT = 0, fx = 0, bx = 0;
+    let nextBlink = 2000, blinkEnd = 0;
+    let nextEar = 4000, earEnd = 0, earAngle = -4;
+    let nextLook = 3000, lookX = 0;
+
+    function frame(t) {
+      const s = t / 1000;
+      const dt = Math.min(t - prevT, 100);
+      prevT = t;
+
+      // Kepala dan badan condong ke kursor (halus, bukan pegas)
+      const following = t - lastCurMove < 5000;
+      const dirX = following ? Math.max(-1, Math.min(1, (curX - STAGE_CX) / 200)) : 0;
+      const k = Math.min(1, dt / 90);
+      fx += (dirX * FOLLOW_HEAD * SCALE - fx) * k;
+      bx += (dirX * FOLLOW_BODY * SCALE - bx) * k;
+
+      // Napas
+      const breath = Math.round((Math.sin((s * 2 * Math.PI) / 3.2) + 1) / 2);
+      const headTilt = (fx / SCALE) * 1.5;
+      const bodyDeg = (bx / SCALE) * 2;
+      G.head.style.transform =
+        `translate(${Math.round(fx)}px, ${breath * SCALE}px) rotate(${headTilt}deg)`;
+      G.body.style.transform = `rotate(${bodyDeg}deg)`;
+
+      // Ekor goyang per 5 derajat
+      const tail = Math.round((Math.sin((s * 2 * Math.PI) / 2.6) * 10) / 5) * 5;
+      P.ekor.style.transform = `rotate(${tail}deg)`;
+
+      // Kuping berkedut
+      if (t >= nextEar) {
+        earEnd = t + 180;
+        earAngle = Math.random() < 0.5 ? -4 : 4;
+        nextEar = t + rand(4000, 9000);
+      }
+      P.kuping.style.transform = `rotate(${t < earEnd ? earAngle : 0}deg)`;
+
+      // Kedip
+      if (t >= nextBlink) {
+        blinkEnd = t + 160;
+        nextBlink = t + rand(2500, 6000);
+      }
+      const closed = t < blinkEnd;
+      P.mata.style.display = closed ? 'none' : '';
+      P.pupil.style.display = closed ? 'none' : '';
+      P.mata_tidur.style.display = closed ? '' : 'none';
+
+      // Pupil: melirik acak, atau mengikuti kursor
+      if (t >= nextLook) {
+        lookX = Math.floor(rand(-1, 2));
+        nextLook = t + rand(2000, 5000);
+      }
+      let ex = lookX, ey = 0;
+      if (following) {
+        ex = Math.abs(curX - STAGE_CX) > 30 ? Math.sign(curX - STAGE_CX) : 0;
+        ey = Math.abs(curY - STAGE_CY) > 30 ? Math.sign(curY - STAGE_CY) : 0;
+      }
+      P.pupil.style.transform = `translate(${ex * SCALE}px, ${ey * SCALE}px)`;
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // ----- Uji dari tahap 1: hover, klik, klik kanan, seret -----
     const info = document.getElementById('info');
     let hover = false, clicks = 0, note = '';
     const show = () => (info.textContent = (hover ? 'HOVER' : 'luar') + ' | klik: ' + clicks + note);
     show();
-
     stage.addEventListener('mouseenter', () => { hover = true; show(); });
     stage.addEventListener('mouseleave', () => { hover = false; show(); });
     stage.addEventListener('click', () => { clicks++; show(); });
@@ -50,7 +147,6 @@
       setTimeout(() => { note = ''; show(); }, 1500);
     });
 
-    // Seret jendela: mulai hanya kalau mouse bergeser > 5 px (supaya klik biasa tetap terbaca)
     let down = null;
     stage.addEventListener('mousedown', (e) => {
       if (e.button === 0) down = { x: e.screenX, y: e.screenY };

@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{thread, time::Duration};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 // Kotak kucing di dalam jendela (piksel logis): stage 144px di tengah jendela 260px
 // (SCALE 3 = floor(190/48), sama dengan versi Electron).
@@ -24,6 +24,7 @@ fn main() {
                     {
                         let x = (cur.x - pos.x as f64) / scale;
                         let y = (cur.y - pos.y as f64) / scale;
+                        let _ = win.emit("cursor", (x, y));
                         let over = x >= CAT_X0 && x <= CAT_X1 && y >= CAT_Y0 && y <= CAT_Y1;
                         let want_ignore = !over;
                         if ignoring != Some(want_ignore) {
