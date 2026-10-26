@@ -1,0 +1,22 @@
+{
+  "layers": [
+    { "id": "ekor",       "file": "parts/ekor.png",      "group": "body" },
+    { "id": "badan",      "file": "body/badan.png",      "group": "body" },
+    { "id": "tangan",     "file": "parts/tangan.png",    "group": "body" },
+    { "id": "kuping",     "file": "parts/kuping.png",    "group": "head" },
+    { "id": "kepala",     "file": "parts/kepala.png",    "group": "head" },
+    { "id": "kumis",      "file": "parts/kumis.png",     "group": "head" },
+    { "id": "mata",       "file": "eyes/mata.png",       "group": "head" },
+    { "id": "mata_tidur", "file": "eyes/mata_tidur.png", "group": "head" },
+    { "id": "pupil",      "file": "eyes/pupil.png",      "group": "head" }
+  ],
+  "pivots": {
+    "ekor": [0.70, 0.80],
+    "kuping": [0.46, 0.14],
+    "gelembung": [0.50, 0.40]
+  },
+  "effects": {
+    "love": "effects/love.png",
+    "gelembung": "effects/gelembung.png"
+  }
+}
