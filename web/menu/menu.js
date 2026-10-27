@@ -35,9 +35,29 @@ const TOGGLES = [
 
 const root = document.getElementById('menu');
 let state = null;
+let mode = 'pet'; // 'pet' = pet right-click menu, 'tray' = tray icon menu
+let tray = { visible: true, autostart: false };
 
 // report = true: beri tahu Rust tingginya, lalu Rust menempatkan dan menampilkan jendela
+function renderTray(report) {
+  const t = tray;
+  root.innerHTML = `
+    <div class="title"><span class="t">${icon('paw')}Cat Companion</span><span class="dots"><i></i><i></i><i></i></span></div>
+    <div class="sec s1">
+      <button class="btn" data-act="t-toggle">${icon('eye')}${t.visible ? 'Hide cat' : 'Show cat'}</button>
+      <button class="btn lav" data-act="panel">${icon('heart')}Customize cat</button>
+    </div>
+    <div class="sec s3">
+      <button class="btn toggle${t.autostart ? ' on' : ''}" data-act="t-autostart">${icon('play')}<span>Start with Windows</span><b class="sw">${t.autostart ? 'ON' : 'OFF'}</b></button>
+    </div>
+    <div class="sec s4">
+      <button class="btn pink" data-act="quit">${icon('x')}Quit</button>
+    </div>`;
+  if (report) invoke('menu_size', { h: root.offsetHeight + 10 });
+}
+
 function render(report) {
+  if (mode === 'tray') return renderTray(report);
   const s = state;
   const idle = s.phase === 'idle';
   const pomoText = idle ? 'Mulai Pomodoro' : s.running ? 'Jeda Pomodoro' : 'Lanjutkan';
@@ -84,6 +104,20 @@ root.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
   const act = el.dataset.act;
+  if (act === 't-toggle') {
+    invoke('tray_action', { action: 'toggle' });
+    invoke('menu_close');
+    return;
+  }
+  if (act === 't-autostart') {
+    invoke('tray_action', { action: 'autostart' })
+      .then(() => invoke('tray_state'))
+      .then((s) => {
+        tray = s;
+        render(true);
+      });
+    return;
+  }
   if (act === 'panel') {
     invoke('menu_close');
     invoke('open_panel');
@@ -106,11 +140,17 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // Setiap kali kucing diklik kanan: ambil status terbaru, gambar ulang, lalu tampilkan
-listen('menu-open', () => {
-  invoke('menu_state').then((st) => {
-    state = st;
-    render(true);
-  });
+listen('menu-open', (e) => {
+  mode = e.payload === 'tray' ? 'tray' : 'pet';
+  const p =
+    mode === 'tray'
+      ? invoke('tray_state').then((s) => {
+          tray = s;
+        })
+      : invoke('menu_state').then((st) => {
+          state = st;
+        });
+  p.then(() => render(true));
 });
 
 // Pemanasan saat start (jendela masih tersembunyi): muat font dan gambar sekali

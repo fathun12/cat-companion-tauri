@@ -1,9 +1,14 @@
 import S from './state.js';
 import { setSleep, spawnLove } from './actions.js';
+import './hit.js'; // pixel-accurate click-through (self-starting)
 
 // Pose perayaan: kucing berdiri, tangan terangkat, lompat-lompat, hati melayang.
 // Dipicu event Tauri 'celebrate' (nanti dikirim Rust) atau start() langsung.
 const pct = (v) => v * 100 + '%';
+
+// Hand x offsets in image pixels (negative = left). HAND_L_DX = the hand on the right side of the screen.
+const HAND_L_DX = -3;
+const HAND_R_DX = 0;
 
 const mkImg = (file) => {
   const img = new Image();
@@ -94,8 +99,8 @@ export function update(t, dt, active, breath) {
   }
 
   const w = Math.floor(e / 150) % 2;
-  A.img.tangan_kiri.style.transform = `translateY(${w * SC}px)`;
-  A.img.tangan_kanan.style.transform = `translateY(${(1 - w) * SC}px)`;
+  A.img.tangan_kiri.style.transform = `translate(${HAND_L_DX * SC}px, ${w * SC}px)`;
+  A.img.tangan_kanan.style.transform = `translate(${HAND_R_DX * SC}px, ${(1 - w) * SC}px)`;
 
   A.headBox.style.transform = `translateY(${breath * SC}px)`;
 

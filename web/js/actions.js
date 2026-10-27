@@ -18,12 +18,14 @@ export function spawnLove() {
   heart.src = S.BASE + S.rig.effects.love;
   heart.className = 'layer effect';
   S.stage.appendChild(heart);
-  const dx = Math.round(rand(-3, 3)) * S.SCALE;
+  // Random start x above the cat (image pixels), then a small drift while fading
+  const x0 = Math.round(rand(-10, 10)) * S.SCALE;
+  const dx = x0 + Math.round(rand(-3, 3)) * S.SCALE;
   const startY = -Math.round(S.stage.offsetHeight * S.LOVE_START_UP);
   heart
     .animate(
       [
-        { transform: `translate(0px, ${startY}px)`, opacity: 1 },
+        { transform: `translate(${x0}px, ${startY}px)`, opacity: 1 },
         { transform: `translate(${dx}px, ${startY - 3 * S.SCALE}px)`, opacity: 0 },
       ],
       { duration: 1500, easing: 'steps(8)' }

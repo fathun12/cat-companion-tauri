@@ -321,3 +321,22 @@ Repo ini terpisah dari Electron. Isi bagian 3 sampai 7 di atas masih menggambark
 **Tampilan (web/):** index.html + js/ (state, actions, look, rig, typing, scroll, celebrate, drink, animate, input, hud, main), menu/ (menu klik kanan, font di menu/fonts), panel/ (kustomisasi 5 tab, memakai js/look.js). Aset gambar di web/assets (salinan dari assets/ Electron).
 
 **Belum / catatan:** menu tray masih menu bawaan Windows (bukan menu bergaya); pemantau salin file belum dipindah; belum ada installer (bundle.active = false); folder src/, assets/, art/, docs/ lama dari Electron masih ikut di repo ini.
+
+- [27 Okt 2026] Tauri: menu tray bergaya SUDAH. Jendela 'menu' dipakai ulang dengan mode 'tray': perintah tray_state/tray_action di main.rs, show_menu_at di timers.rs, event menu-open (payload 'pet' atau 'tray'), tampilan di web\menu\menu.js (renderTray). Menu bawaan Windows dibuang.
+
+- [27 Okt 2026] Tauri: klik tembus per piksel SUDAH. web\js\hit.js mengecek alpha piksel di bawah kursor (membalik rantai transform DOM tiap layer), lalu memanggil perintah Rust set_cat_hit. Thread kursor di main.rs memakai CAT_HIT (kotak CAT_X0..Y1 dihapus). hit.js diimpor dari celebrate.js (sementara, boleh dipindah ke main.js). Layer berkelas .effect (hati) dan layer berotasi opacity < 0.05 diabaikan.
+
+- [27 Okt 2026] Tauri: hati saat klik kucing muncul di x acak (+-10 piksel gambar, actions.js spawnLove). Pose perayaan: tangan digeser lewat HAND_L_DX / HAND_R_DX di celebrate.js (tangan_kiri_angkat.png tampil di sisi KANAN layar).
+
+- [27 Okt 2026] Tauri: installer SUDAH dibuild. tauri.conf.json: bundle.active true, targets nsis, installMode currentUser, productName "Cat Companion", versi 0.1.0, identifier com.catcompanion.app (data lama di %APPDATA%\com.catcompanion.tauritest disalin ke folder baru). Cargo.toml: [profile.release] codegen-units 1, lto, opt-level s, panic abort, strip. Build: npx --yes @tauri-apps/cli@2 build. Hasil di src-tauri\target\release\bundle\nsis: Cat Companion_0.1.0_x64-setup.exe 1,23 MB (Electron 108,7 MB); exe mentah 3,47 MB sudah termasuk di dalam setup, cukup bagikan setup.exe.
+
+- [27 Okt 2026] RENCANA ASET (pemilik membuat ulang gambar satu per satu; perbaikan lewat kode ditunda). Masalah: click1/click2 berisi badan, kaki, dan keyboard dalam SATU gambar, jadi tepi gelap keyboard (1-5 px) ikut diwarnai (pewarnaan di look.js: kecerahan < 40 = warna badan, hanya abu-abu tengah yang dikecualikan lewat KEEP_MID). Rencana: keypad dan kaki dibuat terpisah, tangan dan keyboard pose mengetik dipisah, tisu dibuat ulang. Perkiraan perubahan kode setelah aset baru:
+  * Keyboard: layer sendiri, JANGAN dimasukkan ke SRC/RECOLOR di look.js (otomatis tidak diwarnai), lalu hapus KEEP_MID dan entri click1/click2 di PART_OF dan PID.
+  * Pose mengetik: buildTyping di rig.js (layer kaki/tangan dan keyboard baru), applyLook di rig.js (src layer baru), drawFeet dan drawRed di typing.js (pasangan _H per layer), PART_OF/PID di look.js (kaki memakai bagian 'foot' atau 'arm').
+  * Kaki: look.js GRID_REF.foot = 's_kaki_kiri'. Bila ukuran gambar kaki berubah, kisi 'foot' di look.json lama tidak cocok (pola bergeser, tidak crash): panel (fromPreset/gridDims) perlu dibuka ulang dan pola kaki dilukis lagi, atau tambahkan migrasi.
+  * Tisu: scroll.js measureRoll membaca kotak pembatas tisu.png untuk asal garis tisu, jadi ukuran/posisi baru ikut otomatis; tisu tidak diwarnai; geser 1 piksel saat tangan menarik (update).
+  * Pose perayaan memakai badan, kaki, dan kepala dari assets/cat/scroll; ikut berubah bila aset scroll dibuat ulang. Tangan: assets/cat/celebrate. Cek HAND_L_DX / HAND_R_DX lagi setelah tangan baru.
+  * Klik tembus (hit.js) membaca alpha tiap layer otomatis, tidak perlu diubah.
+  * Semua gambar tetap kanvas 48x48, transparan, bertumpuk di (0,0).
+
+- [27 Okt 2026] Antrean berikutnya: (1) uji pasang setup.exe (kucing, tray, Start with Windows); (2) pemilik membuat ulang aset (keypad dan kaki); (3) bersihkan folder lama Electron di repo Tauri (src\, assets\, art\, dan docs\ lama); (4) fitur tertunda: pemantau salin file Explorer tidak dipindah (dimatikan di Electron, jangan dicoba lagi dengan cara yang sama).

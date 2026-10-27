@@ -10,7 +10,6 @@ use std::{
     time::{Duration, Instant},
 };
 use tauri::{
-    menu::{CheckMenuItem, Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager,
 };
@@ -21,15 +20,12 @@ mod panel;
 mod timers;
 mod watchers;
 
-// Kotak kucing di dalam jendela (piksel logis): stage 144px di tengah jendela 260px.
-const CAT_X0: f64 = 58.0;
-const CAT_Y0: f64 = 58.0;
-const CAT_X1: f64 = 202.0;
-const CAT_Y1: f64 = 202.0;
 const PEEK_VISIBLE: f64 = 150.0; // tinggi jendela yang terlihat saat mengintip (px logis)
 
 static PEEKING: AtomicBool = AtomicBool::new(false);
 static PEEK_ENABLED: AtomicBool = AtomicBool::new(true);
+// True while the cursor is over an opaque pixel of the cat (set by the frontend, see web/js/hit.js)
+static CAT_HIT: AtomicBool = AtomicBool::new(false);
 
 // Selisih kursor terhadap pojok jendela saat diseret (piksel fisik). None = tidak diseret.
 type Drag = Arc<Mutex<Option<(f64, f64)>>>;
@@ -121,6 +117,37 @@ fn look_set(app: tauri::AppHandle, look: String) {
 #[tauri::command]
 fn set_peek_enabled(on: bool) {
     PEEK_ENABLED.store(on, Ordering::Relaxed);
+}
+
+#[tauri::command]
+fn set_cat_hit(hit: bool) {
+    CAT_HIT.store(hit, Ordering::Relaxed);
+}
+
+#[tauri::command]
+fn tray_state(app: tauri::AppHandle) -> serde_json::Value {
+    let visible = app
+        .get_webview_window("main")
+        .and_then(|w| w.is_visible().ok())
+        .unwrap_or(true);
+    serde_json::json!({
+        "visible": visible,
+        "autostart": app.autolaunch().is_enabled().unwrap_or(false)
+    })
+}
+
+#[tauri::command]
+fn tray_action(app: tauri::AppHandle, action: String) {
+    match action.as_str() {
+        "toggle" => toggle(&app),
+        "autostart" => {
+            let al = app.autolaunch();
+            let on = al.is_enabled().unwrap_or(false);
+            let _ = if on { al.disable() } else { al.enable() };
+        }
+        "quit" => app.exit(0),
+        _ => {}
+    }
 }
 
 // ---------- Tray ----------
@@ -217,6 +244,9 @@ fn main() {
             look_get,
             look_set,
             set_peek_enabled,
+            set_cat_hit,
+            tray_state,
+            tray_action,
             timers::show_menu,
             timers::menu_size,
             timers::menu_close,
@@ -250,49 +280,27 @@ fn main() {
             app.global_shortcut()
                 .register(Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyQ))?;
 
-            // Tray: klik kiri = tampil/sembunyi, klik kanan = menu
-            let toggle_i = MenuItem::with_id(app, "toggle", "Tampil / Sembunyi", true, None::<&str>)?;
-            let auto_i = CheckMenuItem::with_id(
-                app,
-                "autostart",
-                "Jalankan saat Windows menyala",
-                true,
-                app.autolaunch().is_enabled().unwrap_or(false),
-                None::<&str>,
-            )?;
-            let quit_i = MenuItem::with_id(app, "quit", "Keluar", true, None::<&str>)?;
-            let panel_i = MenuItem::with_id(app, "panel", "Kustomisasi", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&toggle_i, &panel_i, &auto_i, &quit_i])?;
-            let auto_item = auto_i.clone();
+            // Tray: left click = show/hide, right click = styled menu (the 'menu' window)
             let mut tb = TrayIconBuilder::new()
                 .tooltip("Cat Companion")
-                .menu(&menu)
-                .show_menu_on_left_click(false)
-                .on_menu_event(move |app, event| match event.id().as_ref() {
-                    "toggle" => toggle(app),
-                    "autostart" => {
-                        let al = app.autolaunch();
-                        let on = al.is_enabled().unwrap_or(false);
-                        let _ = if on { al.disable() } else { al.enable() };
-                        let _ = auto_item.set_checked(al.is_enabled().unwrap_or(false));
-                    }
-                    "panel" => {
-                        let a = app.clone();
-                        tauri::async_runtime::spawn(async move {
-                            let _ = panel::open_panel(a).await;
-                        });
-                    }
-                    "quit" => app.exit(0),
-                    _ => {}
-                })
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
+                        button,
                         button_state: MouseButtonState::Up,
+                        position,
                         ..
                     } = event
                     {
-                        toggle(tray.app_handle());
+                        match button {
+                            MouseButton::Left => toggle(tray.app_handle()),
+                            MouseButton::Right => timers::show_menu_at(
+                                tray.app_handle(),
+                                position.x as i32,
+                                position.y as i32,
+                                "tray",
+                            ),
+                            _ => {}
+                        }
                     }
                 });
             if let Some(icon) = app.default_window_icon() {
@@ -373,7 +381,7 @@ fn main() {
                             last = (x, y);
                             let _ = win.emit("cursor", (x, y));
                         }
-                        let over = x >= CAT_X0 && x <= CAT_X1 && y >= CAT_Y0 && y <= CAT_Y1;
+                        let over = CAT_HIT.load(Ordering::Relaxed);
                         let want_ignore = !(over || dragging.is_some());
                         if ignoring != Some(want_ignore) {
                             let _ = win.set_ignore_cursor_events(want_ignore);

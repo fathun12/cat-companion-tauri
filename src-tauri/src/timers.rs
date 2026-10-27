@@ -343,7 +343,15 @@ pub fn show_menu(app: AppHandle, win: WebviewWindow, st: tauri::State<'_, Timers
         st.lock().unwrap().menu_at = (c.x as i32, c.y as i32);
     }
     // Tampilan menu menyegarkan isinya, lalu memanggil menu_size (yang menampilkan jendela)
-    let _ = app.emit("menu-open", ());
+    let _ = app.emit("menu-open", "pet");
+}
+
+// Called from the tray (right click on the icon): the menu opens at the click position
+pub fn show_menu_at(app: &AppHandle, x: i32, y: i32, mode: &str) {
+    if let Some(st) = app.try_state::<TimersState>() {
+        st.lock().unwrap().menu_at = (x, y);
+    }
+    let _ = app.emit("menu-open", mode);
 }
 
 #[tauri::command]

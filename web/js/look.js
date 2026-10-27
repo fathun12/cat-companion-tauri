@@ -156,6 +156,37 @@ function patColor(look, id, xRel, yRel, bw, bh) {
   return g.px[gy * g.w + gx] || null;
 }
 
+// Keyboard edge pixels in click1/click2: a short dark run (max 5 px) with a mid-gray pixel on its
+// left and a transparent pixel (or the image edge) on its right. Cat body and feet never match.
+function keyboardMask(src) {
+  const { width: w, height: h, data: d } = src;
+  const kind = (x, y) => {
+    const i = (y * w + x) * 4;
+    if (d[i + 3] === 0) return 0;
+    const L = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+    return L < 40 ? 2 : L > 215 ? 3 : 1;
+  };
+  const mask = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    let x = 0;
+    while (x < w) {
+      if (kind(x, y) !== 2) {
+        x++;
+        continue;
+      }
+      let e = x;
+      while (e + 1 < w && kind(e + 1, y) === 2) e++;
+      const leftMid = x > 0 && kind(x - 1, y) === 1;
+      const rightOpen = e === w - 1 || kind(e + 1, y) === 0;
+      if (leftMid && rightOpen && e - x + 1 <= 5) {
+        for (let k = x; k <= e; k++) mask[y * w + k] = 1;
+      }
+      x = e + 1;
+    }
+  }
+  return mask;
+}
+
 // Mengembalikan { badan: dataURL, click1: ..., click1_H: ... } yang sudah diwarnai.
 export async function recolorAll(look, ids) {
   const body = hex(look.body);
@@ -219,6 +250,7 @@ export async function recolorAll(look, ids) {
     const img = new ImageData(new Uint8ClampedArray(src.data), w, h);
     const imgH = PID[id] ? new ImageData(new Uint8ClampedArray(src.data), w, h) : null;
     const d = img.data;
+    const kb = KEEP_MID.has(id) ? src.kb || (src.kb = keyboardMask(src)) : null;
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -227,6 +259,7 @@ export async function recolorAll(look, ids) {
         const L = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
         let c;
         if (L < 40) {
+          if (kb && kb[y * w + x]) continue; // keyboard edge stays as drawn
           if (grid) {
             const pc = patColor(look, id, x - bb.minX, y - bb.minY, bb.w, bb.h);
             c = pc ? hx(pc) : body;
