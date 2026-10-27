@@ -17,6 +17,8 @@ use tauri::{
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt as _};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
+mod timers;
+
 // Kotak kucing di dalam jendela (piksel logis): stage 144px di tengah jendela 260px.
 const CAT_X0: f64 = 58.0;
 const CAT_Y0: f64 = 58.0;
@@ -212,11 +214,22 @@ fn main() {
             drag_end,
             look_get,
             look_set,
-            set_peek_enabled
+            set_peek_enabled,
+            timers::show_menu,
+            timers::menu_size,
+            timers::menu_close,
+            timers::menu_state,
+            timers::menu_action,
+            timers::play_get,
+            timers::note_get,
+            timers::note_set,
+            timers::msgs_get,
+            timers::msgs_set
         ])
         .setup(move |app| {
             let win = app.get_webview_window("main").unwrap();
             restore_pos(app.handle(), &win);
+            timers::init(app.handle());
 
             // Keluar darurat: Ctrl+Shift+Q
             app.handle().plugin(

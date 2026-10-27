@@ -50,10 +50,10 @@ export function initInput() {
     if (S.dragMoved) invoke('drag_end');
   });
 
-  // SEMENTARA (menunggu menu klik kanan): klik kanan = tes perayaan / minum
+  // Klik kanan: menu Pomodoro dan pengaturan (jendela menu dikelola Rust)
   stage.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    (testN++ % 2 === 0 ? Celebrate : Drink).start();
+    invoke('show_menu');
   });
 
   // ----- Event dari Rust -----

@@ -20,6 +20,21 @@
         "resizable": false,
         "shadow": false,
         "skipTaskbar": true
+      },
+      {
+        "label": "menu",
+        "title": "Menu Kucing",
+        "url": "menu/index.html",
+        "width": 270,
+        "height": 480,
+        "visible": false,
+        "focus": false,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "shadow": false,
+        "skipTaskbar": true
       }
     ],
     "security": { "csp": null }
