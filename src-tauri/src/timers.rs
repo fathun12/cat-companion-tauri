@@ -8,10 +8,17 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow, WindowEvent};
+use tauri::{
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+    WindowEvent,
+};
 
 // Kapan menu mulai tampil (blur dalam 400 ms pertama diabaikan, fokus bisa direbut sesaat)
 static MENU_SHOWN: Mutex<Option<Instant>> = Mutex::new(None);
+// Kapan menu terakhir disembunyikan (None = sedang tampil atau belum dibuat). Lewat 60 dtk, jendelanya dibuang.
+static MENU_HIDDEN_AT: Mutex<Option<Instant>> = Mutex::new(None);
+// HARUS persis sama dengan additionalBrowserArgs di tauri.conf.json dan panel.rs
+const BROWSER_ARGS: &str = "--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -75,6 +82,7 @@ pub struct Timers {
     fired: HashMap<String, String>,
     file: Option<PathBuf>,
     menu_at: (i32, i32),
+    menu_pending: Option<String>, // mode menu yang diminta saat jendelanya belum selesai dibuat
 }
 
 pub type TimersState = Arc<Mutex<Timers>>;
@@ -185,6 +193,18 @@ fn send_status(app: &AppHandle, t: &mut Timers) {
 }
 
 fn tick(app: &AppHandle, st: &TimersState) {
+    // Menu tersembunyi lebih dari 60 detik: jendelanya dibuang (hemat RAM)
+    let expired = MENU_HIDDEN_AT
+        .lock()
+        .unwrap()
+        .map(|t| t.elapsed() > Duration::from_secs(60))
+        .unwrap_or(false);
+    if expired {
+        *MENU_HIDDEN_AT.lock().unwrap() = None;
+        if let Some(w) = app.get_webview_window("menu") {
+            let _ = w.destroy();
+        }
+    }
     let mut t = st.lock().unwrap();
     let now = Instant::now();
     let mut said = false;
@@ -265,6 +285,7 @@ pub fn init(app: &AppHandle) {
         fired: HashMap::new(),
         file,
         menu_at: (0, 0),
+        menu_pending: None,
     };
     t.schedule();
     let st: TimersState = Arc::new(Mutex::new(t));
@@ -275,28 +296,64 @@ pub fn init(app: &AppHandle) {
         thread::sleep(Duration::from_secs(1));
         tick(&app2, &st);
     });
-
-    // Menu klik kanan: tutup kalau kehilangan fokus (klik di luar)
-    if let Some(menu) = app.get_webview_window("menu") {
-        let m2 = menu.clone();
-        menu.on_window_event(move |e| {
-            if let WindowEvent::Focused(false) = e {
-                let recent = MENU_SHOWN
-                    .lock()
-                    .unwrap()
-                    .map(|t| t.elapsed() < Duration::from_millis(400))
-                    .unwrap_or(false);
-                if recent {
-                    let _ = m2.set_focus();
-                } else {
-                    let _ = m2.hide();
-                }
-            }
-        });
-    }
 }
 
 // ---------- Menu klik kanan ----------
+// Membuat jendela menu kalau belum ada (tersembunyi). Dipanggil dari thread terpisah.
+fn ensure_menu(app: &AppHandle) {
+    if app.get_webview_window("menu").is_some() {
+        return;
+    }
+    let menu = match WebviewWindowBuilder::new(app, "menu", WebviewUrl::App("menu/index.html".into()))
+        .title("Menu Kucing")
+        .inner_size(270.0, 480.0)
+        .visible(false)
+        .focused(false)
+        .transparent(true)
+        .decorations(false)
+        .always_on_top(true)
+        .resizable(false)
+        .shadow(false)
+        .skip_taskbar(true)
+        .additional_browser_args(BROWSER_ARGS)
+        .build()
+    {
+        Ok(w) => w,
+        Err(_) => return,
+    };
+    // Tutup kalau kehilangan fokus (klik di luar)
+    let m2 = menu.clone();
+    menu.on_window_event(move |e| {
+        if let WindowEvent::Focused(false) = e {
+            let recent = MENU_SHOWN
+                .lock()
+                .unwrap()
+                .map(|t| t.elapsed() < Duration::from_millis(400))
+                .unwrap_or(false);
+            if recent {
+                let _ = m2.set_focus();
+            } else {
+                let _ = m2.hide();
+                *MENU_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
+            }
+        }
+    });
+}
+
+// Menu sudah ada: kirim event. Belum ada: simpan permintaan, buat jendelanya di thread lain.
+fn open_menu(app: &AppHandle, mode: &str) {
+    *MENU_HIDDEN_AT.lock().unwrap() = None;
+    if app.get_webview_window("menu").is_some() {
+        let _ = app.emit("menu-open", mode);
+        return;
+    }
+    if let Some(st) = app.try_state::<TimersState>() {
+        st.lock().unwrap().menu_pending = Some(mode.to_string());
+    }
+    let app2 = app.clone();
+    thread::spawn(move || ensure_menu(&app2));
+}
+
 fn place_and_show(menu: &WebviewWindow, h_logical: f64, at: (i32, i32)) {
     const W: f64 = 270.0;
     let monitors = menu.available_monitors().unwrap_or_default();
@@ -342,8 +399,7 @@ pub fn show_menu(app: AppHandle, win: WebviewWindow, st: tauri::State<'_, Timers
     if let Ok(c) = win.cursor_position() {
         st.lock().unwrap().menu_at = (c.x as i32, c.y as i32);
     }
-    // Tampilan menu menyegarkan isinya, lalu memanggil menu_size (yang menampilkan jendela)
-    let _ = app.emit("menu-open", "pet");
+    open_menu(&app, "pet");
 }
 
 // Called from the tray (right click on the icon): the menu opens at the click position
@@ -351,7 +407,12 @@ pub fn show_menu_at(app: &AppHandle, x: i32, y: i32, mode: &str) {
     if let Some(st) = app.try_state::<TimersState>() {
         st.lock().unwrap().menu_at = (x, y);
     }
-    let _ = app.emit("menu-open", mode);
+    open_menu(app, mode);
+}
+
+#[tauri::command]
+pub fn menu_pending(st: tauri::State<'_, TimersState>) -> Option<String> {
+    st.lock().unwrap().menu_pending.take()
 }
 
 #[tauri::command]
@@ -367,6 +428,7 @@ pub fn menu_size(app: AppHandle, st: tauri::State<'_, TimersState>, h: f64) {
 pub fn menu_close(app: AppHandle) {
     if let Some(menu) = app.get_webview_window("menu") {
         let _ = menu.hide();
+        *MENU_HIDDEN_AT.lock().unwrap() = Some(Instant::now());
     }
 }
 

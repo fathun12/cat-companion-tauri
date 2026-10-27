@@ -140,8 +140,8 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // Setiap kali kucing diklik kanan: ambil status terbaru, gambar ulang, lalu tampilkan
-listen('menu-open', (e) => {
-  mode = e.payload === 'tray' ? 'tray' : 'pet';
+function openMenu(m) {
+  mode = m === 'tray' ? 'tray' : 'pet';
   const p =
     mode === 'tray'
       ? invoke('tray_state').then((s) => {
@@ -151,7 +151,8 @@ listen('menu-open', (e) => {
           state = st;
         });
   p.then(() => render(true));
-});
+}
+listen('menu-open', (e) => openMenu(e.payload));
 
 // Pemanasan saat start (jendela masih tersembunyi): muat font dan gambar sekali
 Promise.all([
@@ -160,4 +161,8 @@ Promise.all([
 ]).then(([st]) => {
   state = st;
   render(false);
+  // Jendela baru dibuat karena diminta: tampilkan sesuai permintaan yang tertunda
+  invoke('menu_pending').then((m) => {
+    if (m) openMenu(m);
+  });
 });

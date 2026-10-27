@@ -250,6 +250,7 @@ fn main() {
             timers::show_menu,
             timers::menu_size,
             timers::menu_close,
+            timers::menu_pending,
             timers::menu_state,
             timers::menu_action,
             timers::play_get,
