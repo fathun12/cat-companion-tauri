@@ -46,10 +46,11 @@ function updateHeat(t, dt) {
 function drawFeet() {
   const T = S.typ;
   const active = tired ? 0 : S.typeFrame;
-  T.clicks.forEach((c, i) => {
+  T.hands.forEach((c, i) => {
     const on = i === active ? '' : 'none';
     c.img.style.display = on;
     c.imgH.style.display = on;
+    T.keys[i].style.display = on;
   });
 }
 
@@ -122,7 +123,8 @@ function drawRed(t) {
   T.tailH.style.opacity = red;
   T.kupingH.style.opacity = red;
   T.kepalaH.style.opacity = red;
-  T.clicks.forEach((c) => (c.imgH.style.opacity = red));
+  T.bodyH.style.opacity = red;
+  T.hands.forEach((c) => (c.imgH.style.opacity = red));
 }
 
 function drawBubbles(t, show) {

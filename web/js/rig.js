@@ -52,7 +52,14 @@ function buildTyping() {
   T.tailBox.style.transformOrigin = pct(S.TAIL_PIVOT[0]) + ' ' + pct(S.TAIL_PIVOT[1]);
   [T.tail, T.tailH] = pair(T.tailBox);
 
-  T.clicks = [0, 1].map(() => {
+  [T.body, T.bodyH] = pair(T.box);
+  T.keys = ['left', 'right'].map((side) => {
+    const k = mkImg();
+    k.src = S.BASE + 'cat/typing/keyboard_' + side + '_clicked.png';
+    T.box.appendChild(k);
+    return k;
+  });
+  T.hands = [0, 1].map(() => {
     const [img, imgH] = pair(T.box);
     return { img, imgH };
   });
@@ -148,15 +155,17 @@ export async function applyLook(look) {
   const T = S.typ;
   T.tail.src = urls.t_ekor;
   T.tailH.src = urls.t_ekor_H;
-  T.clicks[0].img.src = urls.click1;
-  T.clicks[0].imgH.src = urls.click1_H;
-  T.clicks[1].img.src = urls.click2;
-  T.clicks[1].imgH.src = urls.click2_H;
+  T.body.src = urls.t_badan;
+  T.bodyH.src = urls.t_badan_H;
+  T.hands[0].img.src = urls.t_hand_left;
+  T.hands[0].imgH.src = urls.t_hand_left_H;
+  T.hands[1].img.src = urls.t_hand_right;
+  T.hands[1].imgH.src = urls.t_hand_right_H;
   T.kuping.src = urls.t_kuping;
   T.kupingH.src = urls.t_kuping_H;
   T.kepala.src = urls.t_kepala;
   T.kepalaH.src = urls.t_kepala_H;
-  T.closed.src = await Look.closedEyes(look);
+  T.closed.src = urls.t_mata_tidur;
   T.mata.src = urls.t_mata;
   T.pupil.src = urls.t_pupil;
 

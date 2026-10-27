@@ -8,8 +8,9 @@ const SRC = {
   kuping: 'cat/parts/kuping.png',
   ekor: 'cat/parts/ekor.png',
   tangan: 'cat/parts/tangan.png',
-  click1: 'cat/typing/click1.png',
-  click2: 'cat/typing/click2.png',
+  t_badan: 'cat/typing/badan.png',
+  t_hand_left: 'cat/typing/hand_left_clicked.png',
+  t_hand_right: 'cat/typing/hand_right_clicked.png',
   t_kepala: 'cat/typing/kepala.png',
   t_kuping: 'cat/typing/kuping.png',
   t_ekor: 'cat/typing/ekor.png',
@@ -27,15 +28,18 @@ const SRC = {
   pupil: 'cat/eyes/pupil.png',
   t_mata: 'cat/typing/mata.png',
   t_pupil: 'cat/typing/pupil.png',
+  t_mata_tidur: 'cat/typing/mata_tidur.png',
   s_mata: 'cat/scroll/mata.png',
   s_pupil: 'cat/scroll/pupil.png',
 };
 const RECOLOR = Object.keys(SRC);
 const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil']);
+const CLOSED = new Set(['t_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
 
 // Layer mana memakai kisi bagian mana (kuping dibagi dua: kiri dan kanan)
 const PART_OF = {
-  badan: 'body', click1: 'body', click2: 'body', s_badan: 'body',
+  badan: 'body', t_badan: 'body', s_badan: 'body',
+  t_hand_left: 'arm', t_hand_right: 'arm',
   kepala: 'head', t_kepala: 'head', s_kepala: 'head',
   kuping: 'ears', t_kuping: 'ears', s_kuping: 'ears',
   ekor: 'tail', t_ekor: 'tail', s_ekor: 'tail',
@@ -46,12 +50,13 @@ const PART_OF = {
 
 // Layer ini memakai pola layer idle-nya, dan dibuatkan versi merah (akhiran _H)
 const PID = {
-  click1: 'badan', click2: 'badan', t_kepala: 'kepala', t_kuping: 'kuping', t_ekor: 'ekor',
+  t_badan: 'badan', t_hand_left: 'tangan', t_hand_right: 'tangan',
+  t_kepala: 'kepala', t_kuping: 'kuping', t_ekor: 'ekor',
   s_badan: 'badan', s_kepala: 'kepala', s_kuping: 'kuping', s_ekor: 'ekor',
   s_tangan_kiri: 'tangan', s_tangan_kanan: 'tangan', s_kaki_kiri: 'tangan', s_kaki_kanan: 'tangan',
   c_tangan_kiri: 'tangan', c_tangan_kanan: 'tangan',
 };
-const KEEP_MID = new Set(['click1', 'click2']); // papan ketik tidak diwarnai
+const KEEP_MID = new Set(); // keyboard sekarang layer sendiri (tidak masuk SRC), jadi tidak perlu pengecualian
 
 const CX_HEAD = 0.5;
 const CX_BODY = 0.5;
@@ -219,6 +224,20 @@ export async function recolorAll(look, ids) {
     const w = src.width;
     const h = src.height;
     const bb = src.bb;
+
+    if (CLOSED.has(id)) {
+      const cimg = new ImageData(new Uint8ClampedArray(src.data), w, h);
+      const cd = cimg.data;
+      for (let i = 0; i < cd.length; i += 4) {
+        if (cd[i + 3] === 0) continue;
+        cd[i] = outline[0];
+        cd[i + 1] = outline[1];
+        cd[i + 2] = outline[2];
+        cd[i + 3] = 255;
+      }
+      out[id] = toUrl(cimg);
+      continue;
+    }
 
     // Mata: hanya diwarnai kalau warnanya diatur; selain itu dibiarkan asli
     if (EYE.has(id)) {
