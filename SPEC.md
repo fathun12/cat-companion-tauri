@@ -1,2 +1,4 @@
 ﻿
 - [27 Okt 2026] Aset baru typing/scroll/celebrate SUDAH dipasang di web\assets\cat. Keyboard typing layer sendiri (tidak diwarnai, tidak merah). Mata tertutup typing dan scroll memakai mata_tidur.png (bukan buatan kode). Celebrate memakai aset sendiri di cat\celebrate, kuping sementara dari scroll (EAR_DX). warm() di look.js ikut memerahkan piksel gelap. Sisa: setel ulang posisi di state.js, lukis ulang pola kaki di panel.
+
+- [27 Okt 2026] Tauri RAM: additionalBrowserArgs '--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection' di jendela main dan menu (tauri.conf.json) dan di panel.rs (additional_browser_args). TEKS HARUS PERSIS SAMA di semua jendela WebView2, kalau beda jendela gagal dibuat. Hasil ukur setup.exe terpasang (privat): 208,5 MB -> 148,8 MB (gpu-process 84,6 -> 13,3 MB). Electron: 117 MB. Sisa terbesar: renderer kucing 43 MB, proses utama WebView2 42 MB, renderer jendela menu tersembunyi 21 MB.
