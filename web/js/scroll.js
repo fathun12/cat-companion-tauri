@@ -59,48 +59,6 @@ async function measureRoll() {
   }
   if (maxX >= 0) A.roll = { x1: minX, x2: maxX, y1: minY, y2: maxY };
 }
-
-// Bentuk tiap mata di mata.png (satu gumpalan per mata) untuk mata tertutup
-async function measureEyes() {
-  const { w, h, d } = await loadPixels(S.BASE + 'cat/scroll/mata.png');
-  const boxes = [];
-  let cur = null;
-  for (let x = 0; x <= w; x++) {
-    let minY = h, maxY = -1;
-    if (x < w) {
-      for (let y = 0; y < h; y++) {
-        if (d[(y * w + x) * 4 + 3] > 0) {
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-        }
-      }
-    }
-    if (maxY >= 0) {
-      if (!cur) cur = { x1: x, x2: x, y1: minY, y2: maxY };
-      cur.x2 = x;
-      cur.y1 = Math.min(cur.y1, minY);
-      cur.y2 = Math.max(cur.y2, maxY);
-    } else if (cur) {
-      boxes.push(cur);
-      cur = null;
-    }
-  }
-  A.eyes = { w, h, boxes };
-  drawClosed();
-}
-
-function drawClosed() {
-  if (!A.eyes || !A.look) return;
-  const { w, h, boxes } = A.eyes;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = A.look.outline || '#ffffff';
-  for (const b of boxes) ctx.fillRect(b.x1, Math.round((b.y1 + b.y2) / 2), b.x2 - b.x1 + 1, 1);
-  A.img.closed.src = c.toDataURL();
-}
-
 export function buildScroll() {
   A = { img: {}, roll: null };
   S.scr = A;

@@ -1,5 +1,5 @@
 import S from './state.js';
-import { setSleep, spawnLove } from './actions.js';
+import { setSleep, spawnLove, rand } from './actions.js';
 import './hit.js'; // pixel-accurate click-through (self-starting)
 
 // Pose perayaan: kucing berdiri, tangan terangkat, lompat-lompat, hati melayang.
@@ -30,6 +30,7 @@ let A = null;
 let startAt = -1;
 let lastHop = -1;
 let wagPhase = 0;
+let nextBlink = 0, blinkEnd = 0;
 
 export function buildCelebrate() {
   A = { img: {} };
@@ -60,6 +61,9 @@ export function buildCelebrate() {
     A.img[id] = mkImg(id + '.png');
     A.headBox.appendChild(A.img[id]);
   }
+  A.img.closed = mkImg();
+  A.img.closed.style.display = 'none';
+  A.headBox.appendChild(A.img.closed);
 
   for (const id of ['tangan_kanan', 'tangan_kiri']) {
     A.img[id] = mkImg();
@@ -71,6 +75,7 @@ export function applyLook(urls) {
   if (!A) return;
   A.img.mata.src = urls.c_mata;
   A.img.pupil.src = urls.c_pupil;
+  A.img.closed.src = urls.c_mata_tidur;
   A.img.ekor.src = urls.c_ekor;
   A.img.badan.src = urls.c_badan;
   A.img.kaki_kiri.src = urls.c_kaki_kiri;
@@ -109,6 +114,15 @@ export function update(t, dt, active, breath) {
   wagPhase += ((dt / 1000) * 2 * Math.PI) / 0.35;
   const wag = Math.round((Math.sin(wagPhase) * 25) / 5) * 5;
   A.tailBox.style.transform = `rotate(${wag}deg)`;
+
+  if (t >= nextBlink) {
+    blinkEnd = t + 160;
+    nextBlink = t + rand(700, 1200);
+  }
+  const shut = t < blinkEnd && !!A.img.closed.src;
+  A.img.mata.style.display = shut ? 'none' : '';
+  A.img.pupil.style.display = shut ? 'none' : '';
+  A.img.closed.style.display = shut ? '' : 'none';
 }
 
 export function start() {
@@ -118,6 +132,8 @@ export function start() {
   S.lastActivity = now;
   startAt = now;
   lastHop = -1;
+  nextBlink = now + 500;
+  blinkEnd = 0;
 }
 
 window.__TAURI__.event.listen('celebrate', start);

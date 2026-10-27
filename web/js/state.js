@@ -15,10 +15,10 @@ const S = {
 
   // Pose mengetik
   TYPE_HOLD_MS: 1200,
-  TYPE_SHIFT_Y: -2,
+  TYPE_SHIFT_Y: 0,
   TAIL_PIVOT: [0.83, 0.58],
-  WHISKER_DY: 3,
-  WHISKER_DX: 2,
+  WHISKER_DY: 5,
+  WHISKER_DX: -4,
   HEAT_KPS: 7,
   HEAT_RISE_MS: 5000,
   HEAT_FALL_MS: 3000,

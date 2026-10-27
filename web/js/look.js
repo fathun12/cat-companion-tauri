@@ -39,10 +39,11 @@ const SRC = {
   s_mata: 'cat/scroll/mata.png',
   s_pupil: 'cat/scroll/pupil.png',
   s_mata_tidur: 'cat/scroll/mata_tidur.png',
+  c_mata_tidur: 'cat/celebrate/mata_tidur.png',
 };
 const RECOLOR = Object.keys(SRC);
 const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil', 'c_mata', 'c_pupil']);
-const CLOSED = new Set(['t_mata_tidur', 's_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
+const CLOSED = new Set(['t_mata_tidur', 's_mata_tidur', 'c_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
 
 // Layer mana memakai kisi bagian mana (kuping dibagi dua: kiri dan kanan)
 const PART_OF = {
@@ -68,7 +69,6 @@ const PID = {
   c_badan: 'badan', c_kepala: 'kepala', c_ekor: 'ekor',
   c_kaki_kiri: 'tangan', c_kaki_kanan: 'tangan',
 };
-const KEEP_MID = new Set(); // keyboard sekarang layer sendiri (tidak masuk SRC), jadi tidak perlu pengecualian
 
 const CX_HEAD = 0.5;
 const CX_BODY = 0.5;
@@ -173,38 +173,7 @@ function patColor(look, id, xRel, yRel, bw, bh) {
   return g.px[gy * g.w + gx] || null;
 }
 
-// Keyboard edge pixels in click1/click2: a short dark run (max 5 px) with a mid-gray pixel on its
-// left and a transparent pixel (or the image edge) on its right. Cat body and feet never match.
-function keyboardMask(src) {
-  const { width: w, height: h, data: d } = src;
-  const kind = (x, y) => {
-    const i = (y * w + x) * 4;
-    if (d[i + 3] === 0) return 0;
-    const L = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
-    return L < 40 ? 2 : L > 215 ? 3 : 1;
-  };
-  const mask = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) {
-    let x = 0;
-    while (x < w) {
-      if (kind(x, y) !== 2) {
-        x++;
-        continue;
-      }
-      let e = x;
-      while (e + 1 < w && kind(e + 1, y) === 2) e++;
-      const leftMid = x > 0 && kind(x - 1, y) === 1;
-      const rightOpen = e === w - 1 || kind(e + 1, y) === 0;
-      if (leftMid && rightOpen && e - x + 1 <= 5) {
-        for (let k = x; k <= e; k++) mask[y * w + k] = 1;
-      }
-      x = e + 1;
-    }
-  }
-  return mask;
-}
-
-// Mengembalikan { badan: dataURL, click1: ..., click1_H: ... } yang sudah diwarnai.
+// Mengembalikan { badan: dataURL, t_badan: ..., t_badan_H: ... } yang sudah diwarnai.
 export async function recolorAll(look, ids) {
   const body = hex(look.body);
   const outline = hex(look.outline);
@@ -279,9 +248,8 @@ export async function recolorAll(look, ids) {
     }
 
     const img = new ImageData(new Uint8ClampedArray(src.data), w, h);
-    const imgH = PID[id] ? new ImageData(new Uint8ClampedArray(src.data), w, h) : null;
+    const imgH = PID[id] && id.startsWith('t_') ? new ImageData(new Uint8ClampedArray(src.data), w, h) : null;
     const d = img.data;
-    const kb = KEEP_MID.has(id) ? src.kb || (src.kb = keyboardMask(src)) : null;
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -290,7 +258,6 @@ export async function recolorAll(look, ids) {
         const L = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
         let c;
         if (L < 40) {
-          if (kb && kb[y * w + x]) continue; // keyboard edge stays as drawn
           if (grid) {
             const pc = patColor(look, id, x - bb.minX, y - bb.minY, bb.w, bb.h);
             c = pc ? hx(pc) : body;
@@ -298,7 +265,6 @@ export async function recolorAll(look, ids) {
             c = cols[fn(pid, x - bb.minX, y - bb.minY, bb.w, bb.h)];
           }
         } else if (L > 215) c = outline;
-        else if (KEEP_MID.has(id)) continue;
         else c = body.map((v, k) => v + (outline[k] - v) * (L / 255));
         d[i] = c[0];
         d[i + 1] = c[1];
@@ -317,46 +283,6 @@ export async function recolorAll(look, ids) {
   return out;
 }
 
-// Mata tertutup pose mengetik: satu garis di tengah tiap mata, warna garis tepi
-export async function closedEyes(look) {
-  const outline = hex(look.outline);
-  const img = await loadImage(ASSETS + 'cat/typing/mata.png');
-  const w = img.naturalWidth;
-  const h = img.naturalHeight;
-  const cv = document.createElement('canvas');
-  cv.width = w;
-  cv.height = h;
-  const ctx = cv.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-  const data = ctx.getImageData(0, 0, w, h);
-  const d = data.data;
-  let minY = h, maxY = -1;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      if (d[(y * w + x) * 4 + 3] > 0) {
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-    }
-  }
-  const mid = Math.round((minY + maxY) / 2);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      if (d[i + 3] === 0) continue;
-      if (y === mid) {
-        d[i] = outline[0];
-        d[i + 1] = outline[1];
-        d[i + 2] = outline[2];
-        d[i + 3] = 255;
-      } else {
-        d[i + 3] = 0;
-      }
-    }
-  }
-  ctx.putImageData(data, 0, 0);
-  return cv.toDataURL();
-}
 // ===== Untuk panel kustomisasi =====
 export const PART_KEYS = ['earL', 'earR', 'head', 'body', 'arm', 'foot', 'tail'];
 
