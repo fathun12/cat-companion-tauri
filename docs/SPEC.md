@@ -295,3 +295,5 @@ Hal yang belum diverifikasi AI penulis: isi lengkap `look.js` (kecuali 25 baris 
 - [27 Okt 2026] Tauri tahap 3a: ingat posisi (pos.json di %APPDATA%\com.catcompanion.tauritest), tray (tauri tray-icon), satu instance, Ctrl+Shift+Q, skipTaskbar, mode mengintip (SHQueryUserNotificationState lewat extern shell32), look.json dimuat lewat perintah look_get/look_set. Belum: menu klik kanan, Pomodoro/HUD, panel kustomisasi, watchers.
 
 - [27 Okt 2026] Tauri tahap 3a: ingat posisi (pos.json di %APPDATA%\com.catcompanion.tauritest), tray (tauri tray-icon), satu instance, Ctrl+Shift+Q, skipTaskbar, mode mengintip (SHQueryUserNotificationState lewat extern shell32), look.json dimuat lewat perintah look_get/look_set. Belum: menu klik kanan, Pomodoro/HUD, panel kustomisasi, watchers.
+
+- [27 Okt 2026] Tauri tahap 3a: ingat posisi (pos.json di %APPDATA%\com.catcompanion.tauritest), tray (fitur tray-icon), satu instance, Ctrl+Shift+Q, skipTaskbar, mode mengintip (SHQueryUserNotificationState lewat extern shell32), look.json dimuat lewat perintah look_get/look_set. Belum: menu klik kanan, Pomodoro/HUD, panel kustomisasi, watchers.
