@@ -14,6 +14,7 @@ pub async fn open_panel(app: AppHandle) -> Result<(), String> {
         .title("Kustomisasi Kucing")
         .inner_size(800.0, 780.0)
         .center()
+        .additional_browser_args("--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection")
         .build()
         .map_err(|e| e.to_string())?;
     Ok(())
