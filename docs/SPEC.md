@@ -299,3 +299,25 @@ Hal yang belum diverifikasi AI penulis: isi lengkap `look.js` (kecuali 25 baris 
 - [27 Okt 2026] Tauri tahap 3a: ingat posisi (pos.json di %APPDATA%\com.catcompanion.tauritest), tray (fitur tray-icon), satu instance, Ctrl+Shift+Q, skipTaskbar, mode mengintip (SHQueryUserNotificationState lewat extern shell32), look.json dimuat lewat perintah look_get/look_set. Belum: menu klik kanan, Pomodoro/HUD, panel kustomisasi, watchers.
 
 - [27 Okt 2026] Tauri tahap 3b: timers.rs (Pomodoro, pengingat, pesan kustom, catatan; settings.json), menu klik kanan sebagai jendela kedua 'menu' (web\menu), HUD teks dan catatan di web\js\hud.js. Event Rust ke tampilan: status, say ([teks,jenis]), play-enabled, note, menu-open. Belum: panel kustomisasi, watchers, menu tray bergaya (tray masih menu bawaan Windows).
+
+---
+
+## CATATAN VERSI TAURI (repo cat-companion-tauri, 27 Okt 2026)
+
+Repo ini terpisah dari Electron. Isi bagian 3 sampai 7 di atas masih menggambarkan versi Electron; peta kode Tauri ada di sini.
+
+**Aturan tambahan (WAJIB):** PowerShell hanya untuk membuat folder/file kosong, mengecek ukuran file, dan perintah git/clipboard. SEMUA KODE ditulis di chat dalam blok kode (aturan 6 sampai 9), bukan di dalam here-string PowerShell.
+
+**Stack:** Tauri 2 (Rust) + HTML/JS modul ES tanpa bundler. Menjalankan: `npx --yes @tauri-apps/cli@2 dev`. Data pengguna di `%APPDATA%\com.catcompanion.tauritest\` (pos.json, look.json, settings.json, presets.json).
+
+**Rust (src-tauri/src):**
+- main.rs: jendela kucing, thread kursor + click-through + seret jendela, rdev (aktivitas global; hanya jenis, tombol tidak dibaca), tray (Tampil/Sembunyi, Kustomisasi, Jalankan saat Windows menyala, Keluar), satu instance, Ctrl+Shift+Q, ingat posisi, mode mengintip (SHQueryUserNotificationState), look_get/look_set.
+- timers.rs: Pomodoro, pengingat peregangan/minum, pesan kustom, catatan, settings.json, menu klik kanan (jendela 'menu' tersembunyi, menu_size/menu_close/menu_state/menu_action).
+- watchers.rs: pemantau unduhan (folder Unduhan) dan ComfyUI (port 8188, crate ureq). Pemantau salin file Explorer TIDAK dipindah.
+- panel.rs: open_panel (jendela 'panel' dibuat saat diminta), presets_get/presets_set.
+
+**Event Rust ke tampilan:** activity, cursor, status, say ([teks, jenis]), play-enabled, note, look, celebrate, menu-open.
+
+**Tampilan (web/):** index.html + js/ (state, actions, look, rig, typing, scroll, celebrate, drink, animate, input, hud, main), menu/ (menu klik kanan, font di menu/fonts), panel/ (kustomisasi 5 tab, memakai js/look.js). Aset gambar di web/assets (salinan dari assets/ Electron).
+
+**Belum / catatan:** menu tray masih menu bawaan Windows (bukan menu bergaya); pemantau salin file belum dipindah; belum ada installer (bundle.active = false); folder src/, assets/, art/, docs/ lama dari Electron masih ikut di repo ini.

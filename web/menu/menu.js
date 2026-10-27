@@ -73,7 +73,7 @@ function render(report) {
     <div class="sec s2">${rows}</div>
     <div class="sec s3">${toggles}</div>
     <div class="sec s4">
-      <button class="btn lav" disabled>${icon('heart')}Kustomisasi (segera)</button>
+      <button class="btn lav" data-act="panel">${icon('heart')}Kustomisasi kucing</button>
       <button class="btn pink" data-act="quit">${icon('x')}Keluar</button>
     </div>`;
 
@@ -84,6 +84,11 @@ root.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
   const act = el.dataset.act;
+  if (act === 'panel') {
+    invoke('menu_close');
+    invoke('open_panel');
+    return;
+  }
   const val = el.dataset.val === undefined ? undefined : Number(el.dataset.val);
   invoke('menu_action', { action: act, key: el.dataset.key, value: val }).then((st) => {
     if (['pomo', 'reset', 'quit'].includes(act)) {

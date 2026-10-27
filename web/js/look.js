@@ -1,5 +1,6 @@
 // Pewarnaan ulang layer, pola, dan mata tertutup. Gambar dibaca lewat URL (assets/...).
-const ASSETS = 'assets/';
+// Dihitung dari lokasi file ini, jadi jalan dari jendela kucing maupun panel
+const ASSETS = new URL('../assets/', import.meta.url).href;
 
 const SRC = {
   badan: 'cat/body/badan.png',
@@ -291,4 +292,90 @@ export async function closedEyes(look) {
   }
   ctx.putImageData(data, 0, 0);
   return cv.toDataURL();
+}
+// ===== Untuk panel kustomisasi =====
+export const PART_KEYS = ['earL', 'earR', 'head', 'body', 'arm', 'foot', 'tail'];
+
+// Ukuran kisi = ukuran kotak pembatas layer acuan ini
+const GRID_REF = { body: 'badan', head: 'kepala', ears: 'kuping', tail: 'ekor', arm: 'tangan', foot: 's_kaki_kiri' };
+
+// Ukuran kisi tiap bagian (piksel), dari layer acuan
+export async function gridDims() {
+  const s = {};
+  for (const k of Object.keys(GRID_REF)) s[k] = (await getSource(GRID_REF[k])).bb;
+  const earW = Math.ceil(s.ears.w / 2);
+  return {
+    earL: { w: earW, h: s.ears.h },
+    earR: { w: earW, h: s.ears.h },
+    head: { w: s.head.w, h: s.head.h },
+    body: { w: s.body.w, h: s.body.h },
+    arm: { w: s.arm.w, h: s.arm.h },
+    foot: { w: s.foot.w, h: s.foot.h },
+    tail: { w: s.tail.w, h: s.tail.h },
+  };
+}
+
+// Bentuk tiap bagian untuk editor: kecerahan tiap sel (-1 = kosong)
+export async function silhouette() {
+  const dims = await gridDims();
+  const out = {};
+  for (const key of PART_KEYS) {
+    const ref = key === 'earL' || key === 'earR' ? 'kuping' : GRID_REF[key];
+    const src = await getSource(ref);
+    const { w, h } = dims[key];
+    const ox = src.bb.minX + (key === 'earR' ? src.bb.w - w : 0);
+    const L = [];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = ((src.bb.minY + y) * src.width + (ox + x)) * 4;
+        const d = src.data;
+        L.push(d[i + 3] === 0 ? -1 : d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11);
+      }
+    }
+    out[key] = { w, h, L };
+  }
+  return out;
+}
+
+// Membuat tampilan berisi kisi dari preset lama (nama preset atau objek look.json lama)
+const LEGACY_ID = { earL: 'kuping', earR: 'kuping', head: 'kepala', body: 'badan', arm: 'tangan', foot: 'tangan', tail: 'ekor' };
+export async function fromPreset(nameOrLook) {
+  const base = typeof nameOrLook === 'string' ? PRESETS[nameOrLook] : nameOrLook;
+  const dims = await gridDims();
+  const fn = PATTERNS[base.pattern] || PATTERNS.polos;
+  const cols = ['', base.p1 || '', base.p2 || ''];
+  const parts = {};
+  for (const key of PART_KEYS) {
+    const { w, h } = dims[key];
+    const px = [];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) px.push(cols[fn(LEGACY_ID[key], x, y, w, h)] || '');
+    }
+    parts[key] = { w, h, px };
+  }
+  return {
+    body: base.body,
+    outline: base.outline,
+    parts,
+    eyeBg: base.eyeBg || null,
+    eyeColor: base.eyeColor || null,
+    odd: !!base.odd,
+    eyeColor2: base.eyeColor2 || null,
+  };
+}
+
+// Gambar kucing utuh (untuk pratinjau di panel)
+export async function composite(look) {
+  const rig = await (await fetch(ASSETS + 'cat/rig.json')).json();
+  const layers = rig.layers.filter((l) => l.id !== 'mata_tidur');
+  const urls = await recolorAll(look, layers.map((l) => l.id).filter((id) => RECOLOR.includes(id)));
+  const imgs = await Promise.all(
+    layers.map((l) => loadImage(RECOLOR.includes(l.id) ? urls[l.id] : ASSETS + 'cat/' + l.file))
+  );
+  const c = document.createElement('canvas');
+  c.width = imgs[0].naturalWidth;
+  c.height = imgs[0].naturalHeight;
+  const ctx = c.getContext('2d');
+  imgs.forEach((img) => ctx.drawImage(img, 0, 0));
+  return c;
 }

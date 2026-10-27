@@ -17,7 +17,9 @@ use tauri::{
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt as _};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
+mod panel;
 mod timers;
+mod watchers;
 
 // Kotak kucing di dalam jendela (piksel logis): stage 144px di tengah jendela 260px.
 const CAT_X0: f64 = 58.0;
@@ -224,12 +226,16 @@ fn main() {
             timers::note_get,
             timers::note_set,
             timers::msgs_get,
-            timers::msgs_set
+            timers::msgs_set,
+            panel::open_panel,
+            panel::presets_get,
+            panel::presets_set
         ])
         .setup(move |app| {
             let win = app.get_webview_window("main").unwrap();
             restore_pos(app.handle(), &win);
             timers::init(app.handle());
+            watchers::init(app.handle());
 
             // Keluar darurat: Ctrl+Shift+Q
             app.handle().plugin(
@@ -255,7 +261,8 @@ fn main() {
                 None::<&str>,
             )?;
             let quit_i = MenuItem::with_id(app, "quit", "Keluar", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&toggle_i, &auto_i, &quit_i])?;
+            let panel_i = MenuItem::with_id(app, "panel", "Kustomisasi", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&toggle_i, &panel_i, &auto_i, &quit_i])?;
             let auto_item = auto_i.clone();
             let mut tb = TrayIconBuilder::new()
                 .tooltip("Cat Companion")
@@ -268,6 +275,12 @@ fn main() {
                         let on = al.is_enabled().unwrap_or(false);
                         let _ = if on { al.disable() } else { al.enable() };
                         let _ = auto_item.set_checked(al.is_enabled().unwrap_or(false));
+                    }
+                    "panel" => {
+                        let a = app.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let _ = panel::open_panel(a).await;
+                        });
                     }
                     "quit" => app.exit(0),
                     _ => {}
