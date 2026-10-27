@@ -1,0 +1,2 @@
+﻿
+- [27 Okt 2026] Aset baru typing/scroll/celebrate SUDAH dipasang di web\assets\cat. Keyboard typing layer sendiri (tidak diwarnai, tidak merah). Mata tertutup typing dan scroll memakai mata_tidur.png (bukan buatan kode). Celebrate memakai aset sendiri di cat\celebrate, kuping sementara dari scroll (EAR_DX). warm() di look.js ikut memerahkan piksel gelap. Sisa: setel ulang posisi di state.js, lukis ulang pola kaki di panel.
