@@ -38,10 +38,11 @@ const SRC = {
   t_mata_tidur: 'cat/typing/mata_tidur.png',
   s_mata: 'cat/scroll/mata.png',
   s_pupil: 'cat/scroll/pupil.png',
+  s_mata_tidur: 'cat/scroll/mata_tidur.png',
 };
 const RECOLOR = Object.keys(SRC);
 const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil', 'c_mata', 'c_pupil']);
-const CLOSED = new Set(['t_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
+const CLOSED = new Set(['t_mata_tidur', 's_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
 
 // Layer mana memakai kisi bagian mana (kuping dibagi dua: kiri dan kanan)
 const PART_OF = {

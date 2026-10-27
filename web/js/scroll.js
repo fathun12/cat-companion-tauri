@@ -149,13 +149,12 @@ export function buildScroll() {
   });
 
   measureRoll();
-  measureEyes();
 }
 
 // Dipanggil dari rig.js setiap warna atau pola berubah
 export function applyLook(urls, look) {
   A.look = look;
-  drawClosed();
+  A.img.closed.src = urls.s_mata_tidur;
   A.img.mata.src = urls.s_mata;
   A.img.pupil.src = urls.s_pupil;
   A.img.ekor.src = urls.s_ekor;
