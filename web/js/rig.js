@@ -165,7 +165,13 @@ export async function applyLook(look) {
   setOutline(look);
 }
 
-// Sementara selalu preset hitam. Memuat look.json menyusul di tahap sistem.
+// Muat look.json tersimpan (kalau ada), lalu dengarkan perubahan dari panel
 export async function initLook() {
-  await applyLook(Look.PRESETS.hitam);
+  let saved = null;
+  try {
+    const raw = await window.__TAURI__.core.invoke('look_get');
+    if (raw) saved = JSON.parse(raw);
+  } catch (e) {}
+  await applyLook(saved || Look.PRESETS.hitam);
+  window.__TAURI__.event.listen('look', (e) => applyLook(JSON.parse(e.payload)));
 }
