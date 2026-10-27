@@ -22,8 +22,15 @@ const SRC = {
   s_tangan_kanan: 'cat/scroll/tangan_kanan.png',
   s_kaki_kiri: 'cat/scroll/kaki_kiri.png',
   s_kaki_kanan: 'cat/scroll/kaki_kanan.png',
-  c_tangan_kiri: 'cat/celebrate/tangan_kiri_angkat.png',
-  c_tangan_kanan: 'cat/celebrate/tangan_kanan_angkat.png',
+  c_badan: 'cat/celebrate/badan.png',
+  c_kepala: 'cat/celebrate/kepala.png',
+  c_ekor: 'cat/celebrate/ekor.png',
+  c_kaki_kiri: 'cat/celebrate/kaki_kiri.png',
+  c_kaki_kanan: 'cat/celebrate/kaki_kanan.png',
+  c_tangan_kiri: 'cat/celebrate/tangan_kiri.png',
+  c_tangan_kanan: 'cat/celebrate/tangan_kanan.png',
+  c_mata: 'cat/celebrate/mata.png',
+  c_pupil: 'cat/celebrate/pupil.png',
   mata: 'cat/eyes/mata.png',
   pupil: 'cat/eyes/pupil.png',
   t_mata: 'cat/typing/mata.png',
@@ -33,7 +40,7 @@ const SRC = {
   s_pupil: 'cat/scroll/pupil.png',
 };
 const RECOLOR = Object.keys(SRC);
-const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil']);
+const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil', 'c_mata', 'c_pupil']);
 const CLOSED = new Set(['t_mata_tidur']); // mata tertutup (kedip): seluruh piksel berwarna garis tepi
 
 // Layer mana memakai kisi bagian mana (kuping dibagi dua: kiri dan kanan)
@@ -45,6 +52,8 @@ const PART_OF = {
   ekor: 'tail', t_ekor: 'tail', s_ekor: 'tail',
   tangan: 'arm', s_tangan_kiri: 'arm', s_tangan_kanan: 'arm',
   c_tangan_kiri: 'arm', c_tangan_kanan: 'arm',
+  c_badan: 'body', c_kepala: 'head', c_ekor: 'tail',
+  c_kaki_kiri: 'foot', c_kaki_kanan: 'foot',
   s_kaki_kiri: 'foot', s_kaki_kanan: 'foot',
 };
 
@@ -55,6 +64,8 @@ const PID = {
   s_badan: 'badan', s_kepala: 'kepala', s_kuping: 'kuping', s_ekor: 'ekor',
   s_tangan_kiri: 'tangan', s_tangan_kanan: 'tangan', s_kaki_kiri: 'tangan', s_kaki_kanan: 'tangan',
   c_tangan_kiri: 'tangan', c_tangan_kanan: 'tangan',
+  c_badan: 'badan', c_kepala: 'kepala', c_ekor: 'ekor',
+  c_kaki_kiri: 'tangan', c_kaki_kanan: 'tangan',
 };
 const KEEP_MID = new Set(); // keyboard sekarang layer sendiri (tidak masuk SRC), jadi tidak perlu pengecualian
 
@@ -206,7 +217,7 @@ export async function recolorAll(look, ids) {
   const warm = (c) => {
     if (c[0] === outline[0] && c[1] === outline[1] && c[2] === outline[2]) return RED;
     const L = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
-    if (L < 60) return c;
+    if (L < 60) return c.map((v, k) => Math.round(v + (RED[k] - v) * 0.35));
     return c.map((v, k) => Math.round(v + (RED[k] - v) * 0.4));
   };
   const toUrl = (img) => {

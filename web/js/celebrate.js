@@ -7,14 +7,15 @@ import './hit.js'; // pixel-accurate click-through (self-starting)
 const pct = (v) => v * 100 + '%';
 
 // Hand x offsets in image pixels (negative = left). HAND_L_DX = the hand on the right side of the screen.
-const HAND_L_DX = -3;
+const HAND_L_DX = 0;
 const HAND_R_DX = 0;
+const EAR_DX = -3; // sementara: kuping scroll 3 px lebih kanan dari kepala celebrate
 
 const mkImg = (file) => {
   const img = new Image();
   img.className = 'layer';
   img.draggable = false;
-  if (file) img.src = S.BASE + 'cat/scroll/' + file;
+  if (file) img.src = S.BASE + 'cat/celebrate/' + file;
   return img;
 };
 
@@ -54,6 +55,7 @@ export function buildCelebrate() {
     A.img[id] = mkImg();
     A.headBox.appendChild(A.img[id]);
   }
+  A.img.kuping.style.transform = `translateX(${EAR_DX * S.SCALE}px)`;
   for (const id of ['kumis', 'mata', 'pupil']) {
     A.img[id] = mkImg(id + '.png');
     A.headBox.appendChild(A.img[id]);
@@ -67,16 +69,16 @@ export function buildCelebrate() {
 
 export function applyLook(urls) {
   if (!A) return;
-  A.img.mata.src = urls.s_mata;
-  A.img.pupil.src = urls.s_pupil;
-  A.img.ekor.src = urls.s_ekor;
-  A.img.badan.src = urls.s_badan;
-  A.img.kaki_kiri.src = urls.s_kaki_kiri;
-  A.img.kaki_kanan.src = urls.s_kaki_kanan;
-  A.img.kuping.src = urls.s_kuping;
-  A.img.kepala.src = urls.s_kepala;
-  A.img.tangan_kiri.src = urls.c_tangan_kiri || urls.s_tangan_kiri;
-  A.img.tangan_kanan.src = urls.c_tangan_kanan || urls.s_tangan_kanan;
+  A.img.mata.src = urls.c_mata;
+  A.img.pupil.src = urls.c_pupil;
+  A.img.ekor.src = urls.c_ekor;
+  A.img.badan.src = urls.c_badan;
+  A.img.kaki_kiri.src = urls.c_kaki_kiri;
+  A.img.kaki_kanan.src = urls.c_kaki_kanan;
+  A.img.kuping.src = urls.s_kuping; // sementara, belum ada celebrate_kuping.png
+  A.img.kepala.src = urls.c_kepala;
+  A.img.tangan_kiri.src = urls.c_tangan_kiri;
+  A.img.tangan_kanan.src = urls.c_tangan_kanan;
 }
 
 export const isActive = (t) => startAt >= 0 && t - startAt < S.CELEBRATE_MS;
