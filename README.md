@@ -93,8 +93,14 @@ docs/SPEC.md     handover notes and design decisions
 - Redraw some sprites as separate layers (keyboard, feet, hands, tissue) for cleaner recoloring
 - Installer polish and a final app icon
 
-## Credits and license
+## Inspiration
 
-All pixel art is hand-drawn by the author. The idea was inspired by [Comnyang](https://comnyang.com); none of its assets or sprites are used here.
+Cat Companion is inspired by [Comnyang](https://comnyang.com), a paid desktop pet app. I loved the idea and wanted a cat of my own with extra features I needed day to day.
+
+This is an independent hobby project. I took the idea only: none of Comnyang's code, art or sprites are used here. The code is written from scratch and every sprite is hand-drawn by me.
+
+If you enjoy desktop pets, please consider supporting the original at [comnyang.com](https://comnyang.com). They deserve it.
+
+## License
 
 Released into the public domain under the [Unlicense](LICENSE).
