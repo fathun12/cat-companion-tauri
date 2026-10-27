@@ -3,10 +3,15 @@
 ![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078d4)
 ![Built with Tauri 2](https://img.shields.io/badge/built%20with-Tauri%202-24c8db)
+[![Latest release](https://img.shields.io/github/v/release/fathun12/cat-companion-tauri)](https://github.com/fathun12/cat-companion-tauri/releases/latest)
 
 A tiny pixel-art cat that lives on your Windows desktop. It reacts to your mouse and keyboard, naps when you are away, celebrates when a download finishes, and helps you stay on track with a Pomodoro timer and gentle reminders.
 
-The whole installer is **about 1.2 MB**.
+The whole installer is **about 1.2 MB**. [**Download the latest release**](https://github.com/fathun12/cat-companion-tauri/releases/latest).
+
+<!-- Setelah docs/demo.gif ada, hapus tanda komentar di bawah ini:
+![Cat Companion demo](docs/demo.gif)
+-->
 
 ## Features
 
@@ -38,7 +43,9 @@ The whole installer is **about 1.2 MB**.
 
 ## Install
 
-Download `Cat Companion_0.1.0_x64-setup.exe` and run it. It installs for the current user only and needs no administrator rights.
+Download the installer from the [latest release](https://github.com/fathun12/cat-companion-tauri/releases/latest) and run it. It installs for the current user only and needs no administrator rights.
+
+Windows may show a SmartScreen warning because the app is not code-signed yet. Click **More info**, then **Run anyway**.
 
 Requires Windows 10 or 11 with the WebView2 runtime (included in Windows 11).
 
@@ -50,6 +57,8 @@ Requires Windows 10 or 11 with the WebView2 runtime (included in Windows 11).
 | Installed app | 238 MB | 3.47 MB |
 
 Tauri uses the WebView2 that already ships with Windows instead of bundling its own Chromium.
+
+Memory use is about the same in both versions: roughly 120 MB of private memory when idle. That is mostly the baseline cost of a web view, not of the cat itself. GPU acceleration is turned off in the web view, and the right-click menu window is only created when it is needed.
 
 ## Privacy
 
@@ -90,8 +99,9 @@ docs/SPEC.md     handover notes and design decisions
 
 ## Roadmap
 
-- Redraw some sprites as separate layers (keyboard, feet, hands, tissue) for cleaner recoloring
-- Installer polish and a final app icon
+- A final app icon and installer polish
+- Automatic releases with GitHub Actions
+- Code signing, to remove the SmartScreen warning
 
 ## Inspiration
 
