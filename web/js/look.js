@@ -3,11 +3,19 @@
 const ASSETS = new URL('../assets/', import.meta.url).href;
 
 const SRC = {
-  badan: 'cat/body/badan.png',
-  kepala: 'cat/parts/kepala.png',
-  kuping: 'cat/parts/kuping.png',
-  ekor: 'cat/parts/ekor.png',
-  tangan: 'cat/parts/tangan.png',
+  badan: 'cat/model/badan.png',
+  kepala: 'cat/model/kepala.png',
+  kuping_kanan: 'cat/model/kuping_kanan.png',
+  kuping_kiri: 'cat/model/kuping_kiri.png',
+  ekor: 'cat/model/ekor.png',
+  tangan_kiri: 'cat/model/tangan_kiri.png',
+  tangan_kanan: 'cat/model/tangan_kanan.png',
+  kaki_kiri: 'cat/model/kaki_kiri.png',
+  kaki_kanan: 'cat/model/kaki_kanan.png',
+  kumis: 'cat/model/kumis.png',
+  mata: 'cat/model/mata.png',
+  pupil: 'cat/model/pupil.png',
+  mata_tidur: 'cat/model/mata.png',
   t_badan: 'cat/typing/badan.png',
   t_hand_left: 'cat/typing/hand_left_clicked.png',
   t_hand_right: 'cat/typing/hand_right_clicked.png',
@@ -22,24 +30,12 @@ const SRC = {
   s_tangan_kanan: 'cat/scroll/tangan_kanan.png',
   s_kaki_kiri: 'cat/scroll/kaki_kiri.png',
   s_kaki_kanan: 'cat/scroll/kaki_kanan.png',
-  c_badan: 'cat/celebrate/badan.png',
-  c_kepala: 'cat/celebrate/kepala.png',
-  c_ekor: 'cat/celebrate/ekor.png',
-  c_kaki_kiri: 'cat/celebrate/kaki_kiri.png',
-  c_kaki_kanan: 'cat/celebrate/kaki_kanan.png',
-  c_tangan_kiri: 'cat/celebrate/tangan_kiri.png',
-  c_tangan_kanan: 'cat/celebrate/tangan_kanan.png',
-  c_mata: 'cat/celebrate/mata.png',
-  c_pupil: 'cat/celebrate/pupil.png',
-  mata: 'cat/eyes/mata.png',
-  pupil: 'cat/eyes/pupil.png',
   t_mata: 'cat/typing/mata.png',
   t_pupil: 'cat/typing/pupil.png',
   t_mata_tidur: 'cat/typing/mata_tidur.png',
   s_mata: 'cat/scroll/mata.png',
   s_pupil: 'cat/scroll/pupil.png',
   s_mata_tidur: 'cat/scroll/mata_tidur.png',
-  c_mata_tidur: 'cat/celebrate/mata_tidur.png',
 };
 const RECOLOR = Object.keys(SRC);
 const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil', 'c_mata', 'c_pupil']);
@@ -57,6 +53,9 @@ const PART_OF = {
   c_badan: 'body', c_kepala: 'head', c_ekor: 'tail',
   c_kaki_kiri: 'foot', c_kaki_kanan: 'foot',
   s_kaki_kiri: 'foot', s_kaki_kanan: 'foot',
+  kuping_kanan: 'earL', kuping_kiri: 'earR',
+  tangan_kiri: 'arm', tangan_kanan: 'arm',
+  kaki_kiri: 'foot', kaki_kanan: 'foot',
 };
 
 // Layer ini memakai pola layer idle-nya, dan dibuatkan versi merah (akhiran _H)
@@ -174,6 +173,83 @@ function patColor(look, id, xRel, yRel, bw, bh) {
 }
 
 // Mengembalikan { badan: dataURL, t_badan: ..., t_badan_H: ... } yang sudah diwarnai.
+// ===== Sprite berformat ID warna (assets/cat/model/) =====
+// Tiap piksel dikenali dari warna persisnya (hex), bukan kecerahan.
+const hex6 = (r, g, b) => ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+const ROLE = {
+  '005130': 'tail', 'ffd800': 'body', '524b24': 'arm', 'cbdbfc': 'paw', 'ac3232': 'ear',
+  '99e550': 'head', '004715': 'whisker', '8a6f30': 'eyebg', 'ffffff': 'iris',
+  '76428a': 'leg', '5b6ee1': 'footpad',
+};
+const PAW_ROLES = new Set(['paw', 'footpad']);
+const INNER_RING = false; // true = tiap bagian diberi garis tepi sendiri di dalam bentuknya
+// ring: piksel terluar bagian diwarnai garis tepi. pid: nama pola untuk preset lama.
+const MODEL = {
+  badan: { ring: true, pid: 'badan' },
+  kepala: { ring: true, pid: 'kepala' },
+  kuping_kanan: { ring: true, pid: 'kuping' },
+  kuping_kiri: { ring: true, pid: 'kuping' },
+  ekor: { ring: true, pid: 'ekor' },
+  tangan_kiri: { ring: true, pid: 'tangan' },
+  tangan_kanan: { ring: true, pid: 'tangan' },
+  kaki_kiri: { ring: true, pid: 'tangan' },
+  kaki_kanan: { ring: true, pid: 'tangan' },
+  kumis: { whisker: true },
+  mata: { eye: 'bg' },
+  pupil: { eye: 'iris' },
+  mata_tidur: { closed: true },
+};
+
+function solidAt(src, x, y) {
+  return x >= 0 && y >= 0 && x < src.width && y < src.height && src.data[(y * src.width + x) * 4 + 3] > 0;
+}
+function isRing(src, x, y) {
+  return !(solidAt(src, x - 1, y) && solidAt(src, x + 1, y) && solidAt(src, x, y - 1) && solidAt(src, x, y + 1));
+}
+
+function renderModel(id, M, src, look, c) {
+  const { width: w, height: h, data: sd, bb } = src;
+  const img = new ImageData(new Uint8ClampedArray(sd), w, h);
+  const d = img.data;
+  const set = (i, col) => {
+    d[i] = col[0];
+    d[i + 1] = col[1];
+    d[i + 2] = col[2];
+    d[i + 3] = 255;
+  };
+  const mid = Math.round(bb.minY + (bb.h - 1) / 2);
+  const bgCol = c.hx(look.eyeBg || '#ffffff');
+  const irisA = look.eyeColor || '#5b8cff';
+  const irisB = look.odd ? look.eyeColor2 || irisA : irisA;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (sd[i + 3] === 0) continue;
+      if (M.closed) {
+        if (y === mid) set(i, c.outline);
+        else d[i + 3] = 0;
+        continue;
+      }
+      if (M.whisker) { set(i, c.outline); continue; }
+      if (M.eye === 'bg') { set(i, bgCol); continue; }
+      if (M.eye === 'iris') { set(i, c.hx(x - bb.minX + 0.5 < bb.w / 2 ? irisA : irisB)); continue; }
+      const role = ROLE[hex6(sd[i], sd[i + 1], sd[i + 2])];
+      if (!role) { set(i, [255, 0, 255]); continue; } // warna di luar tabel: magenta agar kelihatan
+      if (INNER_RING && M.ring && isRing(src, x, y)) { set(i, c.outline); continue; }
+      const xr = x - bb.minX;
+      const yr = y - bb.minY;
+      let col;
+      if (c.grid) {
+        const pc = patColor(look, id, xr, yr, bb.w, bb.h);
+        col = pc ? c.hx(pc) : c.body;
+      } else if (PAW_ROLES.has(role)) col = c.cols[look.pattern === 'tuxedo' ? 1 : 0];
+      else col = M.pid === 'tangan' ? c.cols[0] : c.cols[c.fn(M.pid, xr, yr, bb.w, bb.h)];
+      set(i, col);
+    }
+  }
+  return img;
+}
+
 export async function recolorAll(look, ids) {
   const body = hex(look.body);
   const outline = hex(look.outline);
@@ -205,6 +281,11 @@ export async function recolorAll(look, ids) {
     const w = src.width;
     const h = src.height;
     const bb = src.bb;
+
+    if (MODEL[id]) {
+      out[id] = toUrl(renderModel(id, MODEL[id], src, look, { body, outline, grid, cols, fn, hx }));
+      continue;
+    }
 
     if (CLOSED.has(id)) {
       const cimg = new ImageData(new Uint8ClampedArray(src.data), w, h);
@@ -287,22 +368,19 @@ export async function recolorAll(look, ids) {
 export const PART_KEYS = ['earL', 'earR', 'head', 'body', 'arm', 'foot', 'tail'];
 
 // Ukuran kisi = ukuran kotak pembatas layer acuan ini
-const GRID_REF = { body: 'badan', head: 'kepala', ears: 'kuping', tail: 'ekor', arm: 'tangan', foot: 's_kaki_kiri' };
+const GRID_REF = {
+  earL: 'kuping_kanan', earR: 'kuping_kiri', head: 'kepala', body: 'badan',
+  arm: 'tangan_kiri', foot: 'kaki_kiri', tail: 'ekor',
+};
 
 // Ukuran kisi tiap bagian (piksel), dari layer acuan
 export async function gridDims() {
   const s = {};
-  for (const k of Object.keys(GRID_REF)) s[k] = (await getSource(GRID_REF[k])).bb;
-  const earW = Math.ceil(s.ears.w / 2);
-  return {
-    earL: { w: earW, h: s.ears.h },
-    earR: { w: earW, h: s.ears.h },
-    head: { w: s.head.w, h: s.head.h },
-    body: { w: s.body.w, h: s.body.h },
-    arm: { w: s.arm.w, h: s.arm.h },
-    foot: { w: s.foot.w, h: s.foot.h },
-    tail: { w: s.tail.w, h: s.tail.h },
-  };
+  for (const k of Object.keys(GRID_REF)) {
+    const bb = (await getSource(GRID_REF[k])).bb;
+    s[k] = { w: bb.w, h: bb.h };
+  }
+  return s;
 }
 
 // Bentuk tiap bagian untuk editor: kecerahan tiap sel (-1 = kosong)
@@ -310,16 +388,15 @@ export async function silhouette() {
   const dims = await gridDims();
   const out = {};
   for (const key of PART_KEYS) {
-    const ref = key === 'earL' || key === 'earR' ? 'kuping' : GRID_REF[key];
-    const src = await getSource(ref);
+    const src = await getSource(GRID_REF[key]);
     const { w, h } = dims[key];
-    const ox = src.bb.minX + (key === 'earR' ? src.bb.w - w : 0);
     const L = [];
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
-        const i = ((src.bb.minY + y) * src.width + (ox + x)) * 4;
-        const d = src.data;
-        L.push(d[i + 3] === 0 ? -1 : d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11);
+        const px = src.bb.minX + x;
+        const py = src.bb.minY + y;
+        // -1 kosong, 255 = garis tepi (tidak bisa dilukis), 0 = bisa dilukis
+        L.push(!solidAt(src, px, py) ? -1 : INNER_RING && isRing(src, px, py) ? 255 : 0);
       }
     }
     out[key] = { w, h, L };
@@ -337,9 +414,18 @@ export async function fromPreset(nameOrLook) {
   const parts = {};
   for (const key of PART_KEYS) {
     const { w, h } = dims[key];
+    const src = await getSource(GRID_REF[key]);
     const px = [];
     for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) px.push(cols[fn(LEGACY_ID[key], x, y, w, h)] || '');
+      for (let x = 0; x < w; x++) {
+        let idx;
+        if (key === 'arm' || key === 'foot') {
+          const i = ((src.bb.minY + y) * src.width + (src.bb.minX + x)) * 4;
+          const paw = src.data[i + 3] > 0 && PAW_ROLES.has(ROLE[hex6(src.data[i], src.data[i + 1], src.data[i + 2])]);
+          idx = paw && base.pattern === 'tuxedo' ? 1 : 0;
+        } else idx = fn(LEGACY_ID[key], x, y, w, h);
+        px.push(cols[idx] || '');
+      }
     }
     parts[key] = { w, h, px };
   }

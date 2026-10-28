@@ -2,20 +2,22 @@ import S from './state.js';
 import { setSleep, spawnLove, rand } from './actions.js';
 import './hit.js'; // pixel-accurate click-through (self-starting)
 
-// Pose perayaan: kucing berdiri, tangan terangkat, lompat-lompat, hati melayang.
-// Dipicu event Tauri 'celebrate' (nanti dikirim Rust) atau start() langsung.
+// Pose perayaan: kucing berdiri, tangan bergantian, lompat-lompat, hati melayang.
+// Memakai sprite yang sama dengan idle (assets/cat/model/), dipasang lewat applyLook.
+// Dipicu event Tauri 'celebrate' atau start() langsung.
 const pct = (v) => v * 100 + '%';
 
-// Hand x offsets in image pixels (negative = left). HAND_L_DX = the hand on the right side of the screen.
+// Selisih x tangan dalam piksel gambar (negatif = kiri). Tangan kiri = tangan di kanan layar.
 const HAND_L_DX = 0;
 const HAND_R_DX = 0;
-const EAR_DX = -3; // sementara: kuping scroll 3 px lebih kanan dari kepala celebrate
 
-const mkImg = (file) => {
+const BODY_IDS = ['badan', 'kaki_kanan', 'kaki_kiri', 'tangan_kanan', 'tangan_kiri'];
+const HEAD_IDS = ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur'];
+
+const mkImg = () => {
   const img = new Image();
   img.className = 'layer';
   img.draggable = false;
-  if (file) img.src = S.BASE + 'cat/celebrate/' + file;
   return img;
 };
 
@@ -45,45 +47,28 @@ export function buildCelebrate() {
   A.img.ekor = mkImg();
   A.tailBox.appendChild(A.img.ekor);
 
-  for (const id of ['badan', 'kaki_kanan', 'kaki_kiri']) {
+  for (const id of BODY_IDS) {
     A.img[id] = mkImg();
     A.box.appendChild(A.img[id]);
   }
 
   A.headBox = mkDiv(A.box);
   A.headBox.style.transformOrigin = '50% 45%';
-  for (const id of ['kuping', 'kepala']) {
+  for (const id of HEAD_IDS) {
     A.img[id] = mkImg();
     A.headBox.appendChild(A.img[id]);
   }
-  A.img.kuping.style.transform = `translateX(${EAR_DX * S.SCALE}px)`;
-  for (const id of ['kumis', 'mata', 'pupil']) {
-    A.img[id] = mkImg(id + '.png');
-    A.headBox.appendChild(A.img[id]);
+  // Titik putar kuping sama seperti di idle (rig.json)
+  for (const id of ['kuping_kanan', 'kuping_kiri']) {
+    const p = S.rig.pivots[id];
+    if (p) A.img[id].style.transformOrigin = pct(p[0]) + ' ' + pct(p[1]);
   }
-  A.img.closed = mkImg();
-  A.img.closed.style.display = 'none';
-  A.headBox.appendChild(A.img.closed);
-
-  for (const id of ['tangan_kanan', 'tangan_kiri']) {
-    A.img[id] = mkImg();
-    A.box.appendChild(A.img[id]);
-  }
+  A.img.mata_tidur.style.display = 'none';
 }
 
 export function applyLook(urls) {
   if (!A) return;
-  A.img.mata.src = urls.c_mata;
-  A.img.pupil.src = urls.c_pupil;
-  A.img.closed.src = urls.c_mata_tidur;
-  A.img.ekor.src = urls.c_ekor;
-  A.img.badan.src = urls.c_badan;
-  A.img.kaki_kiri.src = urls.c_kaki_kiri;
-  A.img.kaki_kanan.src = urls.c_kaki_kanan;
-  A.img.kuping.src = urls.s_kuping; // sementara, belum ada celebrate_kuping.png
-  A.img.kepala.src = urls.c_kepala;
-  A.img.tangan_kiri.src = urls.c_tangan_kiri;
-  A.img.tangan_kanan.src = urls.c_tangan_kanan;
+  for (const id of ['ekor', ...BODY_IDS, ...HEAD_IDS]) A.img[id].src = urls[id];
 }
 
 export const isActive = (t) => startAt >= 0 && t - startAt < S.CELEBRATE_MS;
@@ -119,10 +104,10 @@ export function update(t, dt, active, breath) {
     blinkEnd = t + 160;
     nextBlink = t + rand(700, 1200);
   }
-  const shut = t < blinkEnd && !!A.img.closed.src;
+  const shut = t < blinkEnd && !!A.img.mata_tidur.src;
   A.img.mata.style.display = shut ? 'none' : '';
   A.img.pupil.style.display = shut ? 'none' : '';
-  A.img.closed.style.display = shut ? '' : 'none';
+  A.img.mata_tidur.style.display = shut ? '' : 'none';
 }
 
 export function start() {

@@ -11,7 +11,7 @@ let fx = 0, fvx = 0, fy = 0, fvy = 0, bx = 0, bvx = 0;
 let tilt = 0, tiltV = 0;
 let plant = 1;
 let nextBlink = 2000, blinkEnd = 0;
-let nextEar = 4000, earEnd = 0, earAngle = -4;
+let nextEar = 4000, earEnd = 0, earAngle = -4, earSide = 0;
 let nextLook = 3000, lookX = 0;
 
 function frame(t) {
@@ -89,9 +89,12 @@ function frame(t) {
   if (t >= nextEar) {
     earEnd = t + 180;
     earAngle = Math.random() < 0.5 ? -4 : 4;
+    earSide = Math.random() < 0.5 ? 0 : 1;
     nextEar = t + rand(4000, 9000);
   }
-  parts.kuping.style.transform = `rotate(${t < earEnd ? earAngle : 0}deg)`;
+  const twitch = t < earEnd ? earAngle : 0;
+  parts.kuping_kiri.style.transform = `rotate(${earSide === 0 ? twitch : 0}deg)`;
+  parts.kuping_kanan.style.transform = `rotate(${earSide === 1 ? twitch : 0}deg)`;
 
   // ----- Kedip -----
   if (drinking && nextBlink > t + S.DRINK_BLINK_MAX_MS) {
@@ -129,7 +132,9 @@ function frame(t) {
   parts.pupil.style.transform = `translate(${ex * SCALE}px, ${ey * SCALE}px)`;
 
   // ----- Tangan -----
-  parts.tangan.style.transform = `translate(0px, ${t < S.keyPulseEnd ? SCALE : 0}px)`;
+  const pulse = `translate(0px, ${t < S.keyPulseEnd ? SCALE : 0}px)`;
+  parts.tangan_kiri.style.transform = pulse;
+  parts.tangan_kanan.style.transform = pulse;
 
   // ----- Pose mengetik, scroll, perayaan, minum -----
   let showTyping = Typing.update(t, dt, breath, blinkEnd);

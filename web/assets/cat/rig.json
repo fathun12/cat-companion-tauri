@@ -1,18 +1,21 @@
 {
   "layers": [
-    { "id": "ekor",       "file": "parts/ekor.png",      "group": "body" },
-    { "id": "badan",      "file": "body/badan.png",      "group": "body" },
-    { "id": "tangan",     "file": "parts/tangan.png",    "group": "body" },
-    { "id": "kuping",     "file": "parts/kuping.png",    "group": "head" },
-    { "id": "kepala",     "file": "parts/kepala.png",    "group": "head" },
-    { "id": "kumis",      "file": "parts/kumis.png",     "group": "head" },
-    { "id": "mata",       "file": "eyes/mata.png",       "group": "head" },
-    { "id": "mata_tidur", "file": "eyes/mata_tidur.png", "group": "head" },
-    { "id": "pupil",      "file": "eyes/pupil.png",      "group": "head" }
+    { "id": "ekor",         "file": "model/ekor.png",         "group": "body" },
+    { "id": "badan",        "file": "model/badan.png",        "group": "body" },
+    { "id": "tangan_kiri",  "file": "model/tangan_kiri.png",  "group": "body" },
+    { "id": "tangan_kanan", "file": "model/tangan_kanan.png", "group": "body" },
+    { "id": "kuping_kanan", "file": "model/kuping_kanan.png", "group": "head" },
+    { "id": "kuping_kiri",  "file": "model/kuping_kiri.png",  "group": "head" },
+    { "id": "kepala",       "file": "model/kepala.png",       "group": "head" },
+    { "id": "kumis",        "file": "model/kumis.png",        "group": "head" },
+    { "id": "mata",         "file": "model/mata.png",         "group": "head" },
+    { "id": "mata_tidur",   "file": "model/mata.png",         "group": "head" },
+    { "id": "pupil",        "file": "model/pupil.png",        "group": "head" }
   ],
   "pivots": {
-    "ekor": [0.70, 0.80],
-    "kuping": [0.46, 0.14],
+    "ekor": [0.64, 0.76],
+    "kuping_kanan": [0.365, 0.33],
+    "kuping_kiri": [0.615, 0.33],
     "gelembung": [0.50, 0.40]
   },
   "effects": {
