@@ -53,7 +53,10 @@ const S = {
   CELEBRATE_HOPS: 3,
   CELEBRATE_HOP_PX: 4,
   CELEBRATE_SHIFT_Y: 0,
-  STAND_HAND_DX: [-4, 13], // geser tangan di pose berdiri (celebrate, scroll): [tangan_kanan, tangan_kiri]
+  // Tangan berdiri (celebrate, scroll), gaya Comnyang. Urutan semua array: [tangan_kanan (sisi kiri layar, dekat tisu), tangan_kiri (sisi kanan layar)]
+  STAND_HAND_FLIP: [false, false], // true = dibalik vertikal (telapak ke atas, terangkat)
+  STAND_HAND_DX: [-4, 13], // geser kiri/kanan (piksel gambar)
+  STAND_HAND_DY: [0, 0], // geser atas/bawah (piksel gambar); negatif = naik
   STRETCH_MS: 6000,
   STRETCH_IN_MS: 500,
   STRETCH_OUT_MS: 500,
@@ -62,6 +65,11 @@ const S = {
   STRETCH_SHIFT_Y: 0,
   STRETCH_PIVOT: [0.4, 0.85], // titik tumpu regangan (kaki depan)
   STRETCH_TAIL_PIVOT: [0.5, 0.48],
+  STRETCH_DOWN_PX: 6, // badan turun saat menarik (piksel gambar). Pas kalau = 13 x (1 - cos sudut); 6 untuk 60 derajat
+  STRETCH_HAND_ROT: 60, // kaki depan miring ke depan (kiri layar), derajat; 90 = lurus horizontal; negatif = ke kanan
+  STRETCH_HAND_REACH: [-3, 0], // geser kaki depan ke depan [dx, dy] (piksel gambar); dx negatif = ke kiri
+  STRETCH_HAND_PIVOT: [[15, 28], [24, 28]], // bahu [tangan_kanan, tangan_kiri] di sprite, piksel gambar
+  STRETCH_TAIL: [4, 0], // geser ekor [dx, dy] (piksel gambar); dx positif = ke kanan
 
   // Pose minum
   DRINK_DELAY_MS: 700,

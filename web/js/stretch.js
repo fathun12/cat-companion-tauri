@@ -41,6 +41,9 @@ export function buildStretch() {
     A.img[id] = mkImg();
     A.box.appendChild(A.img[id]);
   }
+  // Titik putar kaki depan = bahu (ujung atas sprite)
+  A.img.tangan_kanan.style.transformOrigin = S.STRETCH_HAND_PIVOT[0].map((v) => v * S.SCALE + 'px').join(' ');
+  A.img.tangan_kiri.style.transformOrigin = S.STRETCH_HAND_PIVOT[1].map((v) => v * S.SCALE + 'px').join(' ');
 
   A.headBox = mkDiv(A.box);
   for (const id of ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur']) {
@@ -68,18 +71,27 @@ export function update(t, dt, active, breath) {
   const a = Math.max(0, Math.min(1, e / S.STRETCH_IN_MS, (S.STRETCH_MS - e) / S.STRETCH_OUT_MS));
   const pulse = 0.5 + 0.5 * Math.sin((e / S.STRETCH_PULSE_MS) * 2 * Math.PI - Math.PI / 2);
   const sx = 1 + S.STRETCH_SCALE_X * a * pulse;
-  A.box.style.transform = `translateY(${S.STRETCH_SHIFT_Y * SC}px) scale(${sx}, 1)`;
+  // jangkauan 0..1: kaki depan terulur dan badan turun; menarik lebih jauh saat pulse penuh
+  const reach = a * (0.7 + 0.3 * pulse);
+  const down = Math.round(S.STRETCH_DOWN_PX * reach) * SC;
+  A.box.style.transform = `translateY(${S.STRETCH_SHIFT_Y * SC + down}px) scale(${sx}, 1)`;
 
   A.headBox.style.transform = `translateY(${breath * SC}px)`;
 
-  // kaki belakang bergoyang naik-turun bergantian
-  const bob = Math.round(Math.sin(e / 450)) * SC;
-  A.img.kaki_kanan.style.transform = `translateY(${bob}px)`;
-  A.img.kaki_kiri.style.transform = `translateY(${-bob}px)`;
+  // kaki belakang tetap menapak: dilawan turunnya badan (tidak bergetar lagi)
+  A.img.kaki_kanan.style.transform = `translateY(${-down}px)`;
+  A.img.kaki_kiri.style.transform = `translateY(${-down}px)`;
+
+  // kaki depan terulur ke depan (kiri layar) dan miring, bertumpu di bahu
+  const hx = Math.round(S.STRETCH_HAND_REACH[0] * reach) * SC;
+  const hy = Math.round(S.STRETCH_HAND_REACH[1] * reach) * SC;
+  const hand = `translate(${hx}px, ${hy}px) rotate(${S.STRETCH_HAND_ROT * reach}deg)`;
+  A.img.tangan_kanan.style.transform = hand;
+  A.img.tangan_kiri.style.transform = hand;
 
   wagPhase += ((dt / 1000) * 2 * Math.PI) / 1.6;
   const wag = Math.round((Math.sin(wagPhase) * 8) / 4) * 4;
-  A.tailBox.style.transform = `rotate(${wag}deg)`;
+  A.tailBox.style.transform = `translate(${S.STRETCH_TAIL[0] * SC}px, ${S.STRETCH_TAIL[1] * SC}px) rotate(${wag}deg)`;
 
   // mata menyipit selama meregang
   const shut = a > 0.6;
