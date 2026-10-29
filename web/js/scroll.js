@@ -1,8 +1,9 @@
 import S from './state.js';
 import { rand, spring } from './actions.js';
-import { STAND } from './look.js';
+import { STAND_SCR } from './look.js';
 
 // Pose scroll: kucing menarik gulungan tisu. Aset di assets/cat/scroll/.
+// Badan dan kepala sama dengan pose celebrate (assets/cat/stand/); tangan memakai sprite scrolling_tangan_*.
 const pct = (v) => v * 100 + '%';
 
 const mkImg = (file) => {
@@ -108,7 +109,7 @@ export function buildScroll() {
 // Dipanggil dari rig.js setiap warna atau pola berubah
 export function applyLook(urls, look) {
   A.look = look;
-  for (const [id, key] of Object.entries(STAND)) A.img[id].src = urls[key];
+  for (const [id, key] of Object.entries(STAND_SCR)) A.img[id].src = urls[key];
 }
 
 // 1-3 garis tisu kecil yang meluncur turun lalu memudar
@@ -162,9 +163,10 @@ export function update(t, dt, active, breath) {
     [kick[i], kickV[i]] = spring(kick[i], kickV[i], 0, 260, 14, sec);
     kick[i] = Math.min(kick[i], 2);
   }
+  // Sprite tangan sudah di posisinya; cuma turun 0-2 piksel saat menggaruk tisu
   const off = (v) => Math.max(0, Math.min(2, Math.round(v))) * SC;
-  A.img.tangan_kiri.style.transform = `translate(${S.STAND_HAND_DX[1] * SC}px, ${off(kick[0])}px)`;
-  A.img.tangan_kanan.style.transform = `translate(${S.STAND_HAND_DX[0] * SC}px, ${off(kick[1])}px)`;
+  A.img.tangan_kiri.style.transform = `translateY(${off(kick[0])}px)`;
+  A.img.tangan_kanan.style.transform = `translateY(${off(kick[1])}px)`;
 
   const peak = Math.max(0, Math.round(Math.max(kick[0], kick[1])));
   A.img.tisu.style.transform = `translateX(${Math.min(1, peak) * SC}px)`;

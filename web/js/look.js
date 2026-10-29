@@ -23,6 +23,10 @@ const SRC = {
   st_mata_tidur: 'cat/stand/mata.png',
   hand_kiri: 'cat/stand/typing_tangan_depan_kiri.png',
   hand_kanan: 'cat/stand/typing_tangan_depan_kanan.png',
+  cel_tangan_kiri: 'cat/stand/celebrate_tangan_kiri.png',
+  cel_tangan_kanan: 'cat/stand/celebrate_tangan_kanan.png',
+  scr_tangan_kiri: 'cat/stand/scrolling_tangan_kiri.png',
+  scr_tangan_kanan: 'cat/stand/scrolling_tangan_kanan.png',
   sr_badan: 'cat/stretch/badan.png',
   sr_ekor: 'cat/stretch/ekor.png',
   sr_kaki_kanan: 'cat/stretch/kaki_belakang_kanan.png',
@@ -73,6 +77,7 @@ const PART_OF = {
   st_kuping_kanan: 'earL', st_kuping_kiri: 'earR',
   st_kaki_kanan: 'foot', st_kaki_kiri: 'foot',
   hand_kiri: 'arm', hand_kanan: 'arm',
+  cel_tangan_kiri: 'arm', cel_tangan_kanan: 'arm', scr_tangan_kiri: 'arm', scr_tangan_kanan: 'arm',
   sr_badan: 'body', sr_kepala: 'head', sr_ekor: 'tail',
   sr_kuping_kanan: 'earL', sr_kuping_kiri: 'earR',
   sr_kaki_kanan: 'arm', sr_kaki_kiri: 'arm',
@@ -242,6 +247,10 @@ const MODEL = {
   st_kaki_kiri: { ring: true, pid: 'tangan' },
   hand_kiri: { ring: true, pid: 'tangan' },
   hand_kanan: { ring: true, pid: 'tangan' },
+  cel_tangan_kiri: { ring: true, pid: 'tangan', role: true },
+  cel_tangan_kanan: { ring: true, pid: 'tangan', role: true },
+  scr_tangan_kiri: { ring: true, pid: 'tangan', role: true },
+  scr_tangan_kanan: { ring: true, pid: 'tangan', role: true },
   st_kumis: { whisker: true },
   st_mata: { eye: 'bg' },
   st_pupil: { eye: 'iris' },
@@ -266,6 +275,9 @@ export const STAND = {
   kuping_kanan: 'st_kuping_kanan', kuping_kiri: 'st_kuping_kiri', kepala: 'st_kepala',
   kumis: 'st_kumis', mata: 'st_mata', pupil: 'st_pupil', mata_tidur: 'st_mata_tidur',
 };
+// Dua pose berdiri memakai badan dan kepala yang sama; hanya tangannya beda
+export const STAND_CEL = { ...STAND, tangan_kanan: 'cel_tangan_kanan', tangan_kiri: 'cel_tangan_kiri' };
+export const STAND_SCR = { ...STAND, tangan_kanan: 'scr_tangan_kanan', tangan_kiri: 'scr_tangan_kiri' };
 export const STRETCH = {
   ekor: 'sr_ekor', badan: 'sr_badan', kaki_kanan: 'sr_kaki_kanan', kaki_kiri: 'sr_kaki_kiri', // kaki = kaki belakang
   tangan_kanan: 'hand_kanan', tangan_kiri: 'hand_kiri',
@@ -357,7 +369,10 @@ function renderModel(id, M, src, look, c) {
         bh = cb.h;
       }
       let col;
-      if (c.grid) {
+      const limb = PART_OF[id] === 'arm' || PART_OF[id] === 'foot' ? c.rc && c.rc[PART_OF[id]] : null;
+      if (c.grid && limb) {
+        col = PAW_ROLES.has(role) ? limb.paw : limb.arm;
+      } else if (c.grid) {
         const pc = patColor(look, id, xr, yr, bw, bh);
         col = pc ? c.hx(pc) : c.body;
       } else if (PAW_ROLES.has(role)) col = c.cols[look.pattern === 'tuxedo' ? 1 : 0];
@@ -366,6 +381,30 @@ function renderModel(id, M, src, look, c) {
     }
   }
   return img;
+}
+
+// Warna telapak dan lengan dari kisi 'arm': dibaca dari sel telapak di sprite acuan (GRID_REF).
+// Dipakai sprite tangan yang bentuk dan arahnya beda, supaya telapak tetap telapak.
+async function roleColors(look, key, hx) {
+  const g = look.parts && look.parts[key];
+  if (!g || !g.px) return null;
+  const ref = await getSource(GRID_REF[key]);
+  const bb = ref.bb;
+  const body = look.body;
+  const votes = { paw: {}, arm: {} };
+  for (let gy = 0; gy < g.h; gy++) {
+    for (let gx = 0; gx < g.w; gx++) {
+      const x = bb.minX + Math.floor(((gx + 0.5) / g.w) * bb.w);
+      const y = bb.minY + Math.floor(((gy + 0.5) / g.h) * bb.h);
+      const i = (y * ref.width + x) * 4;
+      if (ref.data[i + 3] === 0) continue;
+      const kind = PAW_ROLES.has(ROLE[hex6(ref.data[i], ref.data[i + 1], ref.data[i + 2])]) ? 'paw' : 'arm';
+      const c = g.px[gy * g.w + gx] || body;
+      votes[kind][c] = (votes[kind][c] || 0) + 1;
+    }
+  }
+  const pick = (v) => hx(Object.keys(v).sort((a, b) => v[b] - v[a])[0] || body);
+  return { paw: Object.keys(votes.paw).length ? pick(votes.paw) : pick(votes.arm), arm: pick(votes.arm) };
 }
 
 export async function recolorAll(look, ids) {
@@ -393,6 +432,7 @@ export async function recolorAll(look, ids) {
   };
   const out = {};
 
+  const rc = grid ? { arm: await roleColors(look, 'arm', hx), foot: await roleColors(look, 'foot', hx) } : null;
   for (const id of ids || RECOLOR) {
     const pid = PID[id] || id;
     const src = await getSource(id);
@@ -401,7 +441,7 @@ export async function recolorAll(look, ids) {
     const bb = src.bb;
 
     if (MODEL[id]) {
-      const mimg = renderModel(id, MODEL[id], src, look, { body, outline, grid, cols, fn, hx });
+      const mimg = renderModel(id, MODEL[id], src, look, { body, outline, grid, cols, fn, hx, rc });
       out[id] = toUrl(mimg);
       if (HEATED.has(id)) {
         const hh = new ImageData(new Uint8ClampedArray(mimg.data), mimg.width, mimg.height);

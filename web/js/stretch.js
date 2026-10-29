@@ -44,6 +44,8 @@ export function buildStretch() {
   // Titik putar kaki depan = bahu (ujung atas sprite)
   A.img.tangan_kanan.style.transformOrigin = S.STRETCH_HAND_PIVOT[0].map((v) => v * S.SCALE + 'px').join(' ');
   A.img.tangan_kiri.style.transformOrigin = S.STRETCH_HAND_PIVOT[1].map((v) => v * S.SCALE + 'px').join(' ');
+  A.img.tangan_kanan.style.imageRendering = 'pixelated';
+  A.img.tangan_kiri.style.imageRendering = 'pixelated';
 
   A.headBox = mkDiv(A.box);
   for (const id of ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur']) {

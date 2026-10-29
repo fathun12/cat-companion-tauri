@@ -69,7 +69,7 @@ const S = {
   STRETCH_HAND_ROT: 60, // kaki depan miring ke depan (kiri layar), derajat; 90 = lurus horizontal; negatif = ke kanan
   STRETCH_HAND_REACH: [-3, 0], // geser kaki depan ke depan [dx, dy] (piksel gambar); dx negatif = ke kiri
   STRETCH_HAND_PIVOT: [[15, 28], [24, 28]], // bahu [tangan_kanan, tangan_kiri] di sprite, piksel gambar
-  STRETCH_TAIL: [4, 0], // geser ekor [dx, dy] (piksel gambar); dx positif = ke kanan
+  STRETCH_TAIL: [21, 0], // geser ekor [dx, dy] (piksel gambar); dx positif = ke kanan
 
   // Pose minum
   DRINK_DELAY_MS: 700,

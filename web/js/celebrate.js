@@ -1,16 +1,12 @@
 import S from './state.js';
 import { setSleep, spawnLove, rand } from './actions.js';
 import './hit.js'; // pixel-accurate click-through (self-starting)
-import { STAND } from './look.js';
+import { STAND_CEL } from './look.js';
 
 // Pose perayaan: kucing berdiri, tangan bergantian, lompat-lompat, hati melayang.
-// Memakai sprite yang sama dengan idle (assets/cat/model/), dipasang lewat applyLook.
+// Badan dan kepala sama dengan pose scroll (assets/cat/stand/); tangan memakai sprite celebrate_tangan_*.
 // Dipicu event Tauri 'celebrate' atau start() langsung.
 const pct = (v) => v * 100 + '%';
-
-// Selisih x tangan dalam piksel gambar (negatif = kiri). Tangan kiri = tangan di kanan layar.
-const HAND_L_DX = S.STAND_HAND_DX[1]; // tangan_kiri
-const HAND_R_DX = S.STAND_HAND_DX[0]; // tangan_kanan
 
 const BODY_IDS = ['badan', 'kaki_kanan', 'kaki_kiri', 'tangan_kanan', 'tangan_kiri'];
 const HEAD_IDS = ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur'];
@@ -69,7 +65,7 @@ export function buildCelebrate() {
 
 export function applyLook(urls) {
   if (!A) return;
-  for (const [id, key] of Object.entries(STAND)) A.img[id].src = urls[key];
+  for (const [id, key] of Object.entries(STAND_CEL)) A.img[id].src = urls[key];
 }
 
 export const isActive = (t) => startAt >= 0 && t - startAt < S.CELEBRATE_MS;
@@ -91,9 +87,10 @@ export function update(t, dt, active, breath) {
     spawnLove();
   }
 
+  // Tangan bergantian naik-turun 1 piksel (sprite sudah di posisinya, tanpa rotasi)
   const w = Math.floor(e / 150) % 2;
-  A.img.tangan_kiri.style.transform = `translate(${HAND_L_DX * SC}px, ${w * SC}px)`;
-  A.img.tangan_kanan.style.transform = `translate(${HAND_R_DX * SC}px, ${(1 - w) * SC}px)`;
+  A.img.tangan_kiri.style.transform = `translateY(${w * SC}px)`;
+  A.img.tangan_kanan.style.transform = `translateY(${(1 - w) * SC}px)`;
 
   A.headBox.style.transform = `translateY(${breath * SC}px)`;
 
