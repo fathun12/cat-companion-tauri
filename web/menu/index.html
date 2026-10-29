@@ -14,13 +14,10 @@
       src: url('fonts/pixelify-sans-latin-700-normal.woff2') format('woff2');
     }
     :root {
-      --ink: #2b2140;
-      --cream: #fff3d6;
-      --pink: #ff8fb1;
-      --mint: #7ae0c3;
-      --butter: #ffd65a;
-      --lav: #b9a4ff;
-      --gray: #cfc6b4;
+      --fg: #e1dcc9;
+      --card: #412d15;
+      --bg: #1f150c;
+      --black: #000000;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -33,124 +30,98 @@
     body {
       padding: 0 10px 10px 0;
       font-family: 'Pixelify Sans', 'Courier New', monospace;
-      font-size: 15px;
-      color: var(--ink);
+      font-size: 14px;
+      color: var(--fg);
     }
     #menu {
       width: 256px;
-      background: var(--cream);
-      border: 4px solid var(--ink);
-      box-shadow: 6px 6px 0 var(--ink);
+      background: var(--bg);
+      border: 3px solid var(--fg);
+      box-shadow: 5px 5px 0 var(--black);
     }
-    .title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 10px;
-      background: var(--lav);
-      border-bottom: 4px solid var(--ink);
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .title .t { display: flex; align-items: center; gap: 8px; }
-    .dots i {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-left: 4px;
-      background: var(--ink);
-    }
-    .sec { padding: 10px 12px; }
-    .sec + .sec { border-top: 4px solid var(--ink); }
-    .sec > * + * { margin-top: 8px; }
-    .s1 { background: #fff3d6; }
-    .s2 { background: #ddf6ee; }
-    .s3 { background: #ffe3ec; }
-    .s4 { background: #ece6ff; }
+    .title { display: none; }
+    .sec { padding: 7px 8px; }
+    .sec + .sec { border-top: 3px solid var(--card); }
+    .sec > * + * { margin-top: 5px; }
     .tag {
       display: inline-block;
-      margin-bottom: 6px;
-      padding: 1px 6px;
-      background: var(--ink);
-      color: var(--cream);
-      font-size: 12px;
+      margin-bottom: 4px;
+      padding: 0 5px;
+      background: var(--fg);
+      color: var(--bg);
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .row + .row { margin-top: 10px; }
+    .row + .row { margin-top: 7px; }
     .btn {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       width: 100%;
-      padding: 7px 10px;
-      border: 3px solid var(--ink);
-      background: var(--mint);
-      box-shadow: 3px 3px 0 var(--ink);
-      color: var(--ink);
+      padding: 4px 8px;
+      border: 2px solid var(--black);
+      background: var(--card);
+      box-shadow: 3px 3px 0 var(--black);
+      color: var(--fg);
       font: inherit;
       font-weight: 700;
       text-align: left;
       text-transform: uppercase;
       cursor: pointer;
     }
-    .btn:hover {
-      filter: brightness(1.08);
-      transform: translate(-1px, -1px);
-      box-shadow: 4px 4px 0 var(--ink);
-    }
+    .btn:hover { background: var(--fg); color: var(--bg); }
     .btn:active {
       transform: translate(3px, 3px);
-      box-shadow: 0 0 0 var(--ink);
+      box-shadow: none;
     }
-    .btn:disabled {
-      background: var(--gray);
-      color: #8a7f95;
-      border-color: #8a7f95;
-      box-shadow: 3px 3px 0 #8a7f95;
+    .btn:disabled,
+    .btn:disabled:hover {
+      background: var(--bg);
+      color: var(--card);
+      border-color: var(--card);
+      box-shadow: 3px 3px 0 var(--card);
       transform: none;
-      filter: none;
       cursor: default;
     }
-    .y { background: var(--butter); }
-    .lav { background: var(--lav); }
-    .pink { background: var(--pink); }
     .ico { flex: none; image-rendering: pixelated; }
     .status {
-      padding: 3px 8px;
-      background: var(--ink);
-      color: var(--butter);
+      padding: 2px 6px;
+      background: var(--black);
+      color: var(--fg);
       text-align: center;
       letter-spacing: 2px;
     }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; }
     .chip {
-      min-width: 36px;
-      padding: 3px 7px;
-      border: 3px solid var(--ink);
-      background: var(--cream);
-      box-shadow: 2px 2px 0 var(--ink);
-      color: var(--ink);
+      min-width: 32px;
+      padding: 1px 6px;
+      border: 2px solid var(--black);
+      background: var(--card);
+      box-shadow: 2px 2px 0 var(--black);
+      color: var(--fg);
       font: inherit;
       font-weight: 700;
       cursor: pointer;
     }
-    .chip:hover { background: var(--butter); }
+    .chip:hover { background: var(--fg); color: var(--bg); }
     .chip.on {
-      background: var(--pink);
+      background: var(--fg);
+      color: var(--bg);
       transform: translate(2px, 2px);
       box-shadow: none;
     }
-    .toggle { text-transform: none; background: var(--cream); }
+    .toggle { text-transform: none; }
     .toggle span { flex: 1; font-size: 13px; line-height: 1.1; }
     .sw {
-      padding: 0 7px;
-      border: 3px solid var(--ink);
-      background: var(--gray);
+      padding: 0 6px;
+      border: 2px solid var(--black);
+      background: var(--bg);
+      color: var(--fg);
       font-size: 12px;
     }
-    .toggle.on .sw { background: var(--mint); }
+    .toggle.on .sw { background: var(--fg); color: var(--bg); }
+    .toggle:hover .sw { background: var(--bg); color: var(--fg); }
   </style>
 </head>
 <body>

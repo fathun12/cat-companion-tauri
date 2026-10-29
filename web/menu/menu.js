@@ -19,7 +19,7 @@ function icon(name) {
       if (c === '#') rects += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
     })
   );
-  return `<svg class="ico" viewBox="0 0 7 7" width="21" height="21" shape-rendering="crispEdges" fill="#2b2140">${rects}</svg>`;
+  return `<svg class="ico" viewBox="0 0 7 7" width="14" height="14" shape-rendering="crispEdges" fill="currentColor">${rects}</svg>`;
 }
 
 const ROWS = [
