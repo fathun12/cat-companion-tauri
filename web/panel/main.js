@@ -71,7 +71,7 @@ function drawGrid(key) {
   const ctx = cv.getContext('2d');
   const body = rgb(look.body);
   const outline = rgb(look.outline);
-  ctx.fillStyle = '#2b2140';
+  ctx.fillStyle = '#1f150c';
   ctx.fillRect(0, 0, cv.width, cv.height);
   for (let y = 0; y < g.h; y++) {
     for (let x = 0; x < g.w; x++) {
@@ -106,7 +106,7 @@ function drawGrid(key) {
     const ax = (g.w / 2 + mirrorShift(key) / 2) * cs;
     ctx.setLineDash([5, 4]);
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#ff8fb1';
+    ctx.strokeStyle = '#e1dcc9';
     ctx.beginPath();
     ctx.moveTo(ax, 0);
     ctx.lineTo(ax, cv.height);
@@ -239,7 +239,7 @@ function drawHover(key, ctx, cs) {
     ctx.strokeStyle = '#ffffff';
     ctx.strokeRect(r.x * cs + 1.5, r.y * cs + 1.5, brush * cs - 3, brush * cs - 3);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#2b2140';
+    ctx.strokeStyle = '#000000';
     ctx.strokeRect(r.x * cs + 1.5, r.y * cs + 1.5, brush * cs - 3, brush * cs - 3);
     ctx.setLineDash([]);
   }

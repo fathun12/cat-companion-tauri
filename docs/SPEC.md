@@ -401,3 +401,24 @@ Penamaan kiri/kanan mengikuti KUCING, bukan layar: "kanan" = sisi kiri layar (mi
 - Rilis: GitHub Releases manual lewat web (v0.1.0 sudah terbit). RAM ukur dari setup.exe terpasang. Argumen WebView2 (BROWSER_ARGS) harus sama persis di tauri.conf.json, panel.rs, timers.rs. File catatan ini ada di docs/SPEC.md.
 - [29 Okt 2026] Pose berdiri: badan, kepala, kuping, kumis, mata, pupil, ekor, kaki di assets/cat/stand/ diganti sprite baru buatan pemilik (dipakai bersama celebrate dan scroll). Tangan punya sprite sendiri: celebrate_tangan_kiri/kanan.png (celebrate) dan scrolling_tangan_kiri/kanan.png (scroll), tanpa rotasi; didaftarkan di look.js (SRC, PART_OF, MODEL, STAND_CEL, STAND_SCR). Warna lengan dan kaki kini per peran ID (roleColors), telapak vs lengan konsisten di semua pose. Kumis memakai warna badan. Stretch: badan turun, kaki depan diputar lewat state.js STRETCH_HAND_ROT/REACH/PIVOT, ekor digeser lewat STRETCH_TAIL. Catatan lama tentang STAND_HAND_ROT/FLIP/DX/DY sudah usang (tidak dipakai).
 - [29 Okt 2026] Rilis 0.1.2: menu klik kanan dan menu tray didesain ulang, lebih padat, palet cokelat-krem (E1DCC9, 412D15, 1F150C, 000000) di web\menu\index.html; ikon menu 14 px memakai currentColor (menu.js). Panel Kustomisasi belum diubah. Auto-start dicek: registri HKCU Run berisi Cat Companion yang menunjuk ke folder pemasangan.
+
+## ATURAN TAMBAHAN DARI KESALAHAN SESI 29 OKT 2026 (WAJIB DIBACA AI BERIKUTNYA)
+Pemilik sangat marah di sesi ini karena AI sebelumnya mengulang kesalahan yang sama. Jangan ulangi.
+1. JANGAN membuat file lewat alat (create_file, present_files). Semua kode ditulis LANGSUNG DI CHAT, memakai SEBELUM/SESUDAH. Kalau pemilik minta file penuh, tulis seluruh isinya di chat. Jangan mengulang jawaban panjang yang sama (menghabiskan token pemilik): jawab sekali, benar, ringkas.
+2. JANGAN menebak maksud gambar atau video referensi. Lihat dulu (video bisa diekstrak per frame). Kalau pemilik menunjuk Comnyang sebagai contoh, tiru PERSIS: pose berdiri Comnyang memakai DUA tangan, bukan satu. Jangan menyimpulkan "bagus" dari kalimat yang ambigu.
+3. Memutar sprite lewat CSS (rotate, scaleY(-1), dsb.) BISA dan tidak mengaburkan piksel selama image-rendering: pixelated dan titik putar benar. Jangan menyuruh pemilik menggambar ulang sprite kecuali ia sendiri yang meminta. Jangan juga menyalahkan keterbatasan kode untuk hal yang bisa dikerjakan.
+4. Perubahan gaya harus KONSISTEN ke semua tempat tanpa disuruh: kalau pemilik minta palet baru untuk menu, panel Kustomisasi ikut (otomatis). Warna kustomisasi harus konsisten di SEMUA pose (idle, typing, stretch, scroll, celebrate): telapak vs lengan vs kaki ditentukan oleh warna ID sprite, bukan posisi.
+5. Daftar ID warna ROLE di look.js JANGAN dihapus atau diubah tanpa diminta. Sprite buatan pemilik memakai warna ID itu (lengan 524b24, telapak cbdbfc, badan ffd800, kepala 99e550, dst.).
+6. Pemilik protes (misalnya "ini cuma protes") BUKAN perintah mengembalikan atau mengubah pekerjaannya. Jangan menimpa hasil kerja pemilik.
+7. Minta isi file lewat perintah clipboard sebelum mengedit; teks SEBELUM harus persis. Maksimal SATU pertanyaan per giliran. Kalau pemilik minta "satu-satu", beri satu langkah per giliran. Jangan menyuruh pemilik mengulang langkah yang sudah ia kerjakan.
+8. Jangan bilang sudah beres tanpa bukti. Setiap langkah wajib punya kalimat "Berhasil kalau ...".
+9. Setelah pemilik menyatakan marah, jangan membela diri atau menjelaskan panjang. Akui singkat, kerjakan.
+
+## Catatan teknis 29 Okt 2026
+- Sprite berdiri baru buatan pemilik di web/assets/cat/stand/: badan, kepala, kuping, kumis, mata, pupil, ekor, kaki (dipakai bersama celebrate dan scroll) plus tangan terpisah: celebrate_tangan_kiri/kanan.png dan scrolling_tangan_kiri/kanan.png (tanpa rotasi, sudah di posisinya). look.js: STAND_CEL dan STAND_SCR; sprite tangan diwarnai lewat roleColors (warna per peran ID). celebrate.js dan scroll.js hanya menggeser tangan naik-turun.
+- Stretch (stretch.js + state.js): badan turun (STRETCH_DOWN_PX), kaki depan diputar (STRETCH_HAND_ROT/REACH/PIVOT), ekor digeser (STRETCH_TAIL).
+- Kumis memakai warna badan (look.js WHISKER_COLOR = null).
+- Menu klik kanan dan tray: palet cokelat-krem E1DCC9, 412D15, 1F150C, 000000, lebih padat (web/menu/index.html). Panel Kustomisasi memakai palet yang sama (web/panel/index.html dan main.js).
+- Catatan lama tentang STAND_HAND_ROT/FLIP/DX/DY sudah usang (tidak dipakai).
+- Auto-start berfungsi: menu tray Start with Windows, plugin autostart; harus dinyalakan dari versi terpasang.
+- Rilis GitHub manual lewat web: v0.1.0, v0.1.1, v0.1.2, v0.1.3. Naikkan version di src-tauri/tauri.conf.json sebelum build.
