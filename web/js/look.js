@@ -207,7 +207,7 @@ const PAW_ROLES = new Set(['paw', 'footpad']);
 // Sprite yang butuh versi merah (_H) untuk mode panas saat mengetik
 const HEATED = new Set(['ekor', 'ty_badan', 'ty_hand_left', 'ty_hand_right', 'ty_kepala', 'ty_kuping_kanan', 'ty_kuping_kiri']);
 const INNER_RING = false; // true = tiap bagian diberi garis tepi sendiri di dalam bentuknya
-const WHISKER_COLOR = null; // null = warna garis tepi; atau isi hex, misalnya '#2b2140'
+const WHISKER_COLOR = null; // null = warna badan; atau isi hex, misalnya '#2b2140'
 // ring: piksel terluar bagian diwarnai garis tepi. pid: nama pola untuk preset lama.
 const MODEL = {
   badan: { ring: true, pid: 'badan' },
@@ -339,7 +339,7 @@ function renderModel(id, M, src, look, c) {
         else d[i + 3] = 0;
         continue;
       }
-      if (M.whisker) { set(i, WHISKER_COLOR ? c.hx(WHISKER_COLOR) : c.outline); continue; }
+      if (M.whisker) { set(i, WHISKER_COLOR ? c.hx(WHISKER_COLOR) : c.body); continue; }
       if (M.eye === 'bg') { set(i, bgCol); continue; }
       if (M.eye === 'iris') { set(i, c.hx(x - bb.minX + 0.5 < bb.w / 2 ? irisA : irisB)); continue; }
       const role = ROLE[hex6(sd[i], sd[i + 1], sd[i + 2])];
