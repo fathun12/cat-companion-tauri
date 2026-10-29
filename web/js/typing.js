@@ -48,9 +48,26 @@ function drawFeet() {
   const active = tired ? 0 : S.typeFrame;
   T.hands.forEach((c, i) => {
     const on = i === active ? '' : 'none';
+    const [dx, dy] = S.TYPE_HANDS[i]; // geser halus (opsional), default 0
+    const tr = `translate(${dx * S.SCALE}px, ${dy * S.SCALE}px)`;
     c.img.style.display = on;
     c.imgH.style.display = on;
+    c.img.style.transform = tr;
+    c.imgH.style.transform = tr;
     T.keys[i].style.display = on;
+  });
+}
+
+function drawFeetLama() {
+  const T = S.typ;
+  const active = tired ? 0 : S.typeFrame;
+  T.keys.forEach((k, i) => (k.style.display = i === active ? '' : 'none'));
+  T.hands.forEach((c, i) => {
+    const [dx, dy] = S.TYPE_HANDS[i];
+    const press = i === active ? S.TYPE_PRESS : -S.TYPE_PRESS; // sisi yang diketik turun, sisi lain naik
+    const tr = `translate(${dx * S.SCALE}px, ${(dy + press) * S.SCALE}px)`;
+    c.img.style.transform = tr;
+    c.imgH.style.transform = tr;
   });
 }
 
@@ -110,7 +127,8 @@ function drawTail(t, dt) {
   }
   wagPhase += ((dt / 1000) * (2 * Math.PI)) / period;
   const wag = Math.round((Math.sin(wagPhase) * amp) / 5) * 5;
-  S.typ.tailBox.style.transform = `rotate(${wag}deg)`;
+  const [tx, ty] = S.TYPE_TAIL;
+  S.typ.tailBox.style.transform = `translate(${tx * S.SCALE}px, ${ty * S.SCALE}px) rotate(${wag}deg)`;
 }
 
 function drawRed(t) {
@@ -121,7 +139,7 @@ function drawRed(t) {
       ? Math.max(0, (tiredUntil - t) / S.TIRED_MS)
       : Math.max(0, (heat - 0.3) / 0.7);
   T.tailH.style.opacity = red;
-  T.kupingH.style.opacity = red;
+  T.ears.forEach((c) => (c.imgH.style.opacity = red));
   T.kepalaH.style.opacity = red;
   T.bodyH.style.opacity = red;
   T.hands.forEach((c) => (c.imgH.style.opacity = red));

@@ -15,6 +15,10 @@ const S = {
 
   // Pose mengetik
   TYPE_HOLD_MS: 1200,
+  // Posisi kaki di keyboard [dx, dy] dalam piksel gambar, dari posisi sprite tangan_kiri. [kiri layar, kanan layar]
+  TYPE_HANDS: [[0, 0], [0, 0]],
+  TYPE_PRESS: 2, // seberapa turun/naik kaki saat mengetik (piksel gambar)
+  TYPE_TAIL: [9, -10], // geser ekor di pose typing [dx, dy]; dx negatif ke kiri, dy negatif ke atas
   TYPE_SHIFT_Y: 0,
   TAIL_PIVOT: [0.83, 0.58],
   WHISKER_DY: 5,
@@ -49,6 +53,15 @@ const S = {
   CELEBRATE_HOPS: 3,
   CELEBRATE_HOP_PX: 4,
   CELEBRATE_SHIFT_Y: 0,
+  STAND_HAND_DX: [-4, 13], // geser tangan di pose berdiri (celebrate, scroll): [tangan_kanan, tangan_kiri]
+  STRETCH_MS: 6000,
+  STRETCH_IN_MS: 500,
+  STRETCH_OUT_MS: 500,
+  STRETCH_PULSE_MS: 2400, // satu siklus regangan
+  STRETCH_SCALE_X: 0.06, // seberapa panjang badan saat meregang (0.06 = 6%)
+  STRETCH_SHIFT_Y: 0,
+  STRETCH_PIVOT: [0.4, 0.85], // titik tumpu regangan (kaki depan)
+  STRETCH_TAIL_PIVOT: [0.5, 0.48],
 
   // Pose minum
   DRINK_DELAY_MS: 700,
@@ -60,6 +73,7 @@ const S = {
   DRINK_BOB_UP_PX: 2,
   DRINK_TONGUE_Y0: 32,
   DRINK_TONGUE_UP_ROWS: 1,
+  DRINK_TONGUE_DY: 3, // geser lidah ke bawah (piksel gambar); naikkan kalau masih terlalu atas
   DRINK_PUPIL_DY: 1,
   DRINK_BLINK_MIN_MS: 1200,
   DRINK_BLINK_MAX_MS: 2800,

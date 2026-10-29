@@ -3,6 +3,7 @@ import * as Look from './look.js';
 import * as Scroll from './scroll.js';
 import * as Celebrate from './celebrate.js';
 import * as Drink from './drink.js';
+import * as Stretch from './stretch.js';
 
 const pct = (v) => v * 100 + '%';
 
@@ -49,7 +50,7 @@ function buildTyping() {
   };
 
   T.tailBox = mkDiv(T.box);
-  T.tailBox.style.transformOrigin = pct(S.TAIL_PIVOT[0]) + ' ' + pct(S.TAIL_PIVOT[1]);
+  T.tailBox.style.transformOrigin = pct(S.rig.pivots.ekor[0]) + ' ' + pct(S.rig.pivots.ekor[1]);
   [T.tail, T.tailH] = pair(T.tailBox);
 
   [T.body, T.bodyH] = pair(T.box);
@@ -65,16 +66,15 @@ function buildTyping() {
   });
 
   T.headBox = mkDiv(T.box);
-  [T.kuping, T.kupingH] = pair(T.headBox);
+  T.ears = [0, 1].map(() => {
+    const [img, imgH] = pair(T.headBox);
+    return { img, imgH };
+  });
   [T.kepala, T.kepalaH] = pair(T.headBox);
   T.kumis = mkImg();
   T.mata = mkImg();
   T.pupil = mkImg();
   T.closed = mkImg();
-  T.kumis.src = S.BASE + 'cat/typing/kumis.png';
-  T.kumis.style.transform = `translate(${S.WHISKER_DX * S.SCALE}px, ${S.WHISKER_DY * S.SCALE}px)`;
-  T.mata.src = S.BASE + 'cat/typing/mata.png';
-  T.pupil.src = S.BASE + 'cat/typing/pupil.png';
   T.closed.style.display = 'none';
   T.headBox.append(T.kumis, T.mata, T.pupil, T.closed);
 
@@ -130,6 +130,7 @@ export async function buildRig() {
   buildTyping();
   Scroll.buildScroll();
   Celebrate.buildCelebrate();
+  Stretch.buildStretch();
   Drink.buildDrink();
 }
 
@@ -153,24 +154,28 @@ export async function applyLook(look) {
   for (const id in urls) if (S.parts[id]) S.parts[id].src = urls[id];
 
   const T = S.typ;
-  T.tail.src = urls.t_ekor;
-  T.tailH.src = urls.t_ekor_H;
-  T.body.src = urls.t_badan;
-  T.bodyH.src = urls.t_badan_H;
-  T.hands[0].img.src = urls.t_hand_left;
-  T.hands[0].imgH.src = urls.t_hand_left_H;
-  T.hands[1].img.src = urls.t_hand_right;
-  T.hands[1].imgH.src = urls.t_hand_right_H;
-  T.kuping.src = urls.t_kuping;
-  T.kupingH.src = urls.t_kuping_H;
-  T.kepala.src = urls.t_kepala;
-  T.kepalaH.src = urls.t_kepala_H;
-  T.closed.src = urls.t_mata_tidur;
-  T.mata.src = urls.t_mata;
-  T.pupil.src = urls.t_pupil;
+  T.tail.src = urls.ekor;
+  T.tailH.src = urls.ekor_H;
+  T.body.src = urls.ty_badan;
+  T.bodyH.src = urls.ty_badan_H;
+  T.hands[0].img.src = urls.ty_hand_left;
+  T.hands[0].imgH.src = urls.ty_hand_left_H;
+  T.hands[1].img.src = urls.ty_hand_right;
+  T.hands[1].imgH.src = urls.ty_hand_right_H;
+  T.ears[0].img.src = urls.ty_kuping_kanan;
+  T.ears[0].imgH.src = urls.ty_kuping_kanan_H;
+  T.ears[1].img.src = urls.ty_kuping_kiri;
+  T.ears[1].imgH.src = urls.ty_kuping_kiri_H;
+  T.kepala.src = urls.ty_kepala;
+  T.kepalaH.src = urls.ty_kepala_H;
+  T.closed.src = urls.ty_mata_tidur;
+  T.mata.src = urls.ty_mata;
+  T.pupil.src = urls.ty_pupil;
+  T.kumis.src = urls.ty_kumis;
 
   Scroll.applyLook(urls, look);
   Celebrate.applyLook(urls);
+  Stretch.applyLook(urls);
   setOutline(look);
 }
 

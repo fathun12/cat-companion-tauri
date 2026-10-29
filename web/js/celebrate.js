@@ -1,6 +1,7 @@
 import S from './state.js';
 import { setSleep, spawnLove, rand } from './actions.js';
 import './hit.js'; // pixel-accurate click-through (self-starting)
+import { STAND } from './look.js';
 
 // Pose perayaan: kucing berdiri, tangan bergantian, lompat-lompat, hati melayang.
 // Memakai sprite yang sama dengan idle (assets/cat/model/), dipasang lewat applyLook.
@@ -8,8 +9,8 @@ import './hit.js'; // pixel-accurate click-through (self-starting)
 const pct = (v) => v * 100 + '%';
 
 // Selisih x tangan dalam piksel gambar (negatif = kiri). Tangan kiri = tangan di kanan layar.
-const HAND_L_DX = 0;
-const HAND_R_DX = 0;
+const HAND_L_DX = S.STAND_HAND_DX[1]; // tangan_kiri
+const HAND_R_DX = S.STAND_HAND_DX[0]; // tangan_kanan
 
 const BODY_IDS = ['badan', 'kaki_kanan', 'kaki_kiri', 'tangan_kanan', 'tangan_kiri'];
 const HEAD_IDS = ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur'];
@@ -68,7 +69,7 @@ export function buildCelebrate() {
 
 export function applyLook(urls) {
   if (!A) return;
-  for (const id of ['ekor', ...BODY_IDS, ...HEAD_IDS]) A.img[id].src = urls[id];
+  for (const [id, key] of Object.entries(STAND)) A.img[id].src = urls[key];
 }
 
 export const isActive = (t) => startAt >= 0 && t - startAt < S.CELEBRATE_MS;

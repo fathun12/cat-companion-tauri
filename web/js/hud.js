@@ -35,8 +35,7 @@ export function initHud() {
     setTimeout(updateHud, 7100);
     S.lastActivity = now;
     if (S.sleeping) setSleep(false);
-    if (kind === 'stretch') S.stretchUntil = now + 4000; // kucing meregang
-    else S.mochiV += 2.5; // kucing melonjak kecil
+    if (kind !== 'stretch') S.mochiV += 2.5; // kucing melonjak kecil (peregangan punya pose sendiri)
   });
 
   // Pengaturan "Bermain dengan kursor"

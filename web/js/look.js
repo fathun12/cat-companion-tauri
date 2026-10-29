@@ -10,32 +10,44 @@ const SRC = {
   ekor: 'cat/model/ekor.png',
   tangan_kiri: 'cat/model/tangan_kiri.png',
   tangan_kanan: 'cat/model/tangan_kanan.png',
-  kaki_kiri: 'cat/model/kaki_kiri.png',
-  kaki_kanan: 'cat/model/kaki_kanan.png',
+  st_badan: 'cat/stand/badan.png',
+  st_ekor: 'cat/stand/ekor.png',
+  st_kaki_kanan: 'cat/stand/kaki_kanan.png',
+  st_kaki_kiri: 'cat/stand/kaki_kiri.png',
+  st_kepala: 'cat/stand/kepala.png',
+  st_kumis: 'cat/stand/kumis.png',
+  st_kuping_kanan: 'cat/stand/kuping_kanan.png',
+  st_kuping_kiri: 'cat/stand/kuping_kiri.png',
+  st_mata: 'cat/stand/mata.png',
+  st_pupil: 'cat/stand/pupil.png',
+  st_mata_tidur: 'cat/stand/mata.png',
+  hand_kiri: 'cat/stand/typing_tangan_depan_kiri.png',
+  hand_kanan: 'cat/stand/typing_tangan_depan_kanan.png',
+  sr_badan: 'cat/stretch/badan.png',
+  sr_ekor: 'cat/stretch/ekor.png',
+  sr_kaki_kanan: 'cat/stretch/kaki_belakang_kanan.png',
+  sr_kaki_kiri: 'cat/stretch/kaki_belakang_kiri.png',
+  sr_kepala: 'cat/stretch/kepala.png',
+  sr_kumis: 'cat/stretch/kumis.png',
+  sr_kuping_kanan: 'cat/stretch/kuping_kanan.png',
+  sr_kuping_kiri: 'cat/stretch/kuping_kiri.png',
+  sr_mata: 'cat/stretch/mata.png',
+  sr_pupil: 'cat/stretch/pupil.png',
+  sr_mata_tidur: 'cat/stretch/mata.png',
   kumis: 'cat/model/kumis.png',
   mata: 'cat/model/mata.png',
   pupil: 'cat/model/pupil.png',
   mata_tidur: 'cat/model/mata.png',
-  t_badan: 'cat/typing/badan.png',
-  t_hand_left: 'cat/typing/hand_left_clicked.png',
-  t_hand_right: 'cat/typing/hand_right_clicked.png',
-  t_kepala: 'cat/typing/kepala.png',
-  t_kuping: 'cat/typing/kuping.png',
-  t_ekor: 'cat/typing/ekor.png',
-  s_badan: 'cat/scroll/badan.png',
-  s_kepala: 'cat/scroll/kepala.png',
-  s_kuping: 'cat/scroll/kuping.png',
-  s_ekor: 'cat/scroll/ekor.png',
-  s_tangan_kiri: 'cat/scroll/tangan_kiri.png',
-  s_tangan_kanan: 'cat/scroll/tangan_kanan.png',
-  s_kaki_kiri: 'cat/scroll/kaki_kiri.png',
-  s_kaki_kanan: 'cat/scroll/kaki_kanan.png',
-  t_mata: 'cat/typing/mata.png',
-  t_pupil: 'cat/typing/pupil.png',
-  t_mata_tidur: 'cat/typing/mata_tidur.png',
-  s_mata: 'cat/scroll/mata.png',
-  s_pupil: 'cat/scroll/pupil.png',
-  s_mata_tidur: 'cat/scroll/mata_tidur.png',
+  ty_badan: 'cat/typing/badan.png',
+  ty_kepala: 'cat/typing/kepala.png',
+  ty_kuping_kanan: 'cat/typing/kuping_kanan.png',
+  ty_kuping_kiri: 'cat/typing/kuping_kiri.png',
+  ty_kumis: 'cat/typing/kumis.png',
+  ty_mata: 'cat/typing/mata.png',
+  ty_pupil: 'cat/typing/pupil.png',
+  ty_mata_tidur: 'cat/typing/mata.png',
+  ty_hand_left: 'cat/typing/hand_left_clicked.png',
+  ty_hand_right: 'cat/typing/hand_right_clicked.png',
 };
 const RECOLOR = Object.keys(SRC);
 const EYE = new Set(['mata', 'pupil', 't_mata', 't_pupil', 's_mata', 's_pupil', 'c_mata', 'c_pupil']);
@@ -54,6 +66,16 @@ const PART_OF = {
   c_kaki_kiri: 'foot', c_kaki_kanan: 'foot',
   s_kaki_kiri: 'foot', s_kaki_kanan: 'foot',
   kuping_kanan: 'earL', kuping_kiri: 'earR',
+  ty_badan: 'body', ty_kepala: 'head',
+  ty_kuping_kanan: 'earL', ty_kuping_kiri: 'earR',
+  ty_hand_left: 'arm', ty_hand_right: 'arm',
+  st_badan: 'body', st_kepala: 'head', st_ekor: 'tail',
+  st_kuping_kanan: 'earL', st_kuping_kiri: 'earR',
+  st_kaki_kanan: 'foot', st_kaki_kiri: 'foot',
+  hand_kiri: 'arm', hand_kanan: 'arm',
+  sr_badan: 'body', sr_kepala: 'head', sr_ekor: 'tail',
+  sr_kuping_kanan: 'earL', sr_kuping_kiri: 'earR',
+  sr_kaki_kanan: 'arm', sr_kaki_kiri: 'arm',
   tangan_kiri: 'arm', tangan_kanan: 'arm',
   kaki_kiri: 'foot', kaki_kanan: 'foot',
 };
@@ -182,10 +204,23 @@ const ROLE = {
   '76428a': 'leg', '5b6ee1': 'footpad',
 };
 const PAW_ROLES = new Set(['paw', 'footpad']);
+// Sprite yang butuh versi merah (_H) untuk mode panas saat mengetik
+const HEATED = new Set(['ekor', 'ty_badan', 'ty_hand_left', 'ty_hand_right', 'ty_kepala', 'ty_kuping_kanan', 'ty_kuping_kiri']);
 const INNER_RING = false; // true = tiap bagian diberi garis tepi sendiri di dalam bentuknya
+const WHISKER_COLOR = null; // null = warna garis tepi; atau isi hex, misalnya '#2b2140'
 // ring: piksel terluar bagian diwarnai garis tepi. pid: nama pola untuk preset lama.
 const MODEL = {
   badan: { ring: true, pid: 'badan' },
+  ty_badan: { ring: true, pid: 'badan' },
+  ty_kepala: { ring: true, pid: 'kepala' },
+  ty_kuping_kanan: { ring: true, pid: 'kuping' },
+  ty_kuping_kiri: { ring: true, pid: 'kuping' },
+  ty_hand_left: { ring: true, pid: 'tangan', parts: true },
+  ty_hand_right: { ring: true, pid: 'tangan', parts: true },
+  ty_kumis: { whisker: true },
+  ty_mata: { eye: 'bg' },
+  ty_pupil: { eye: 'iris' },
+  ty_mata_tidur: { closed: true },
   kepala: { ring: true, pid: 'kepala' },
   kuping_kanan: { ring: true, pid: 'kuping' },
   kuping_kiri: { ring: true, pid: 'kuping' },
@@ -198,6 +233,44 @@ const MODEL = {
   mata: { eye: 'bg' },
   pupil: { eye: 'iris' },
   mata_tidur: { closed: true },
+  st_badan: { ring: true, pid: 'badan' },
+  st_ekor: { ring: true, pid: 'ekor' },
+  st_kepala: { ring: true, pid: 'kepala' },
+  st_kuping_kanan: { ring: true, pid: 'kuping' },
+  st_kuping_kiri: { ring: true, pid: 'kuping' },
+  st_kaki_kanan: { ring: true, pid: 'tangan' },
+  st_kaki_kiri: { ring: true, pid: 'tangan' },
+  hand_kiri: { ring: true, pid: 'tangan' },
+  hand_kanan: { ring: true, pid: 'tangan' },
+  st_kumis: { whisker: true },
+  st_mata: { eye: 'bg' },
+  st_pupil: { eye: 'iris' },
+  st_mata_tidur: { closed: true },
+  sr_badan: { ring: true, pid: 'badan' },
+  sr_ekor: { ring: true, pid: 'ekor' },
+  sr_kepala: { ring: true, pid: 'kepala' },
+  sr_kuping_kanan: { ring: true, pid: 'kuping' },
+  sr_kuping_kiri: { ring: true, pid: 'kuping' },
+  sr_kaki_kanan: { ring: true, pid: 'tangan' },
+  sr_kaki_kiri: { ring: true, pid: 'tangan' },
+  sr_kumis: { whisker: true },
+  sr_mata: { eye: 'bg' },
+  sr_pupil: { eye: 'iris' },
+  sr_mata_tidur: { closed: true },
+};
+
+// Layer tiap pose -> kunci URL hasil pewarnaan (dipakai celebrate.js, scroll.js, stretch.js)
+export const STAND = {
+  ekor: 'st_ekor', badan: 'st_badan', kaki_kanan: 'st_kaki_kanan', kaki_kiri: 'st_kaki_kiri',
+  tangan_kanan: 'hand_kanan', tangan_kiri: 'hand_kiri',
+  kuping_kanan: 'st_kuping_kanan', kuping_kiri: 'st_kuping_kiri', kepala: 'st_kepala',
+  kumis: 'st_kumis', mata: 'st_mata', pupil: 'st_pupil', mata_tidur: 'st_mata_tidur',
+};
+export const STRETCH = {
+  ekor: 'sr_ekor', badan: 'sr_badan', kaki_kanan: 'sr_kaki_kanan', kaki_kiri: 'sr_kaki_kiri', // kaki = kaki belakang
+  tangan_kanan: 'hand_kanan', tangan_kiri: 'hand_kiri',
+  kuping_kanan: 'sr_kuping_kanan', kuping_kiri: 'sr_kuping_kiri', kepala: 'sr_kepala',
+  kumis: 'sr_kumis', mata: 'sr_mata', pupil: 'sr_pupil', mata_tidur: 'sr_mata_tidur',
 };
 
 function solidAt(src, x, y) {
@@ -205,6 +278,41 @@ function solidAt(src, x, y) {
 }
 function isRing(src, x, y) {
   return !(solidAt(src, x - 1, y) && solidAt(src, x + 1, y) && solidAt(src, x, y - 1) && solidAt(src, x, y + 1));
+}
+
+// Bagian bersambung (4 arah) di dalam satu sprite: label per piksel dan kotak pembatas tiap bagian.
+// Dipakai sprite yang berisi beberapa bagian (dua kaki typing) supaya pola tidak meregang antar bagian.
+function components(src) {
+  const { width: w, height: h, data: d } = src;
+  const label = new Int32Array(w * h).fill(-1);
+  const boxes = [];
+  for (let sy = 0; sy < h; sy++) {
+    for (let sx = 0; sx < w; sx++) {
+      if (d[(sy * w + sx) * 4 + 3] === 0 || label[sy * w + sx] !== -1) continue;
+      const n = boxes.length;
+      const box = { minX: sx, maxX: sx, minY: sy, maxY: sy };
+      const stack = [[sx, sy]];
+      label[sy * w + sx] = n;
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        if (x < box.minX) box.minX = x;
+        if (x > box.maxX) box.maxX = x;
+        if (y < box.minY) box.minY = y;
+        if (y > box.maxY) box.maxY = y;
+        for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const k = ny * w + nx;
+          if (label[k] !== -1 || d[k * 4 + 3] === 0) continue;
+          label[k] = n;
+          stack.push([nx, ny]);
+        }
+      }
+      box.w = box.maxX - box.minX + 1;
+      box.h = box.maxY - box.minY + 1;
+      boxes.push(box);
+    }
+  }
+  return { label, boxes };
 }
 
 function renderModel(id, M, src, look, c) {
@@ -218,6 +326,7 @@ function renderModel(id, M, src, look, c) {
     d[i + 3] = 255;
   };
   const mid = Math.round(bb.minY + (bb.h - 1) / 2);
+  const comp = M.parts ? components(src) : null;
   const bgCol = c.hx(look.eyeBg || '#ffffff');
   const irisA = look.eyeColor || '#5b8cff';
   const irisB = look.odd ? look.eyeColor2 || irisA : irisA;
@@ -230,20 +339,29 @@ function renderModel(id, M, src, look, c) {
         else d[i + 3] = 0;
         continue;
       }
-      if (M.whisker) { set(i, c.outline); continue; }
+      if (M.whisker) { set(i, WHISKER_COLOR ? c.hx(WHISKER_COLOR) : c.outline); continue; }
       if (M.eye === 'bg') { set(i, bgCol); continue; }
       if (M.eye === 'iris') { set(i, c.hx(x - bb.minX + 0.5 < bb.w / 2 ? irisA : irisB)); continue; }
       const role = ROLE[hex6(sd[i], sd[i + 1], sd[i + 2])];
       if (!role) { set(i, [255, 0, 255]); continue; } // warna di luar tabel: magenta agar kelihatan
       if (INNER_RING && M.ring && isRing(src, x, y)) { set(i, c.outline); continue; }
-      const xr = x - bb.minX;
-      const yr = y - bb.minY;
+      let xr = x - bb.minX;
+      let yr = y - bb.minY;
+      let bw = bb.w;
+      let bh = bb.h;
+      if (comp) {
+        const cb = comp.boxes[comp.label[y * w + x]];
+        xr = x - cb.minX;
+        yr = y - cb.minY;
+        bw = cb.w;
+        bh = cb.h;
+      }
       let col;
       if (c.grid) {
-        const pc = patColor(look, id, xr, yr, bb.w, bb.h);
+        const pc = patColor(look, id, xr, yr, bw, bh);
         col = pc ? c.hx(pc) : c.body;
       } else if (PAW_ROLES.has(role)) col = c.cols[look.pattern === 'tuxedo' ? 1 : 0];
-      else col = M.pid === 'tangan' ? c.cols[0] : c.cols[c.fn(M.pid, xr, yr, bb.w, bb.h)];
+      else col = M.pid === 'tangan' ? c.cols[0] : c.cols[c.fn(M.pid, xr, yr, bw, bh)];
       set(i, col);
     }
   }
@@ -283,7 +401,20 @@ export async function recolorAll(look, ids) {
     const bb = src.bb;
 
     if (MODEL[id]) {
-      out[id] = toUrl(renderModel(id, MODEL[id], src, look, { body, outline, grid, cols, fn, hx }));
+      const mimg = renderModel(id, MODEL[id], src, look, { body, outline, grid, cols, fn, hx });
+      out[id] = toUrl(mimg);
+      if (HEATED.has(id)) {
+        const hh = new ImageData(new Uint8ClampedArray(mimg.data), mimg.width, mimg.height);
+        const e = hh.data;
+        for (let i = 0; i < e.length; i += 4) {
+          if (e[i + 3] === 0) continue;
+          const hc = warm([e[i], e[i + 1], e[i + 2]]);
+          e[i] = hc[0];
+          e[i + 1] = hc[1];
+          e[i + 2] = hc[2];
+        }
+        out[id + '_H'] = toUrl(hh);
+      }
       continue;
     }
 
@@ -370,7 +501,7 @@ export const PART_KEYS = ['earL', 'earR', 'head', 'body', 'arm', 'foot', 'tail']
 // Ukuran kisi = ukuran kotak pembatas layer acuan ini
 const GRID_REF = {
   earL: 'kuping_kanan', earR: 'kuping_kiri', head: 'kepala', body: 'badan',
-  arm: 'tangan_kiri', foot: 'kaki_kiri', tail: 'ekor',
+  arm: 'hand_kiri', foot: 'st_kaki_kiri', tail: 'ekor',
 };
 
 // Ukuran kisi tiap bagian (piksel), dari layer acuan

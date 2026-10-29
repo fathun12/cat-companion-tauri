@@ -1,5 +1,6 @@
 import S from './state.js';
 import { rand, spring } from './actions.js';
+import { STAND } from './look.js';
 
 // Pose scroll: kucing menarik gulungan tisu. Aset di assets/cat/scroll/.
 const pct = (v) => v * 100 + '%';
@@ -76,24 +77,19 @@ export function buildScroll() {
   A.img.ekor = mkImg();
   A.tailBox.appendChild(A.img.ekor);
 
-  for (const id of ['badan', 'tangan_kanan', 'tangan_kiri', 'kaki_kanan', 'kaki_kiri']) {
+  for (const id of ['badan', 'kaki_kanan', 'kaki_kiri', 'tangan_kanan', 'tangan_kiri']) {
     A.img[id] = mkImg();
     A.box.appendChild(A.img[id]);
   }
 
   A.headBox = mkDiv(A.box);
   A.headBox.style.transformOrigin = '50% 45%';
-  for (const id of ['kuping', 'kepala']) {
+  for (const id of ['kuping_kanan', 'kuping_kiri', 'kepala', 'kumis', 'mata', 'pupil', 'mata_tidur']) {
     A.img[id] = mkImg();
     A.headBox.appendChild(A.img[id]);
   }
-  for (const id of ['kumis', 'mata', 'pupil']) {
-    A.img[id] = mkImg(id + '.png');
-    A.headBox.appendChild(A.img[id]);
-  }
-  A.img.closed = mkImg();
+  A.img.closed = A.img.mata_tidur; // nama lama dipakai di update()
   A.img.closed.style.display = 'none';
-  A.headBox.appendChild(A.img.closed);
 
   A.fx = mkDiv(A.box);
   A.bubbles = (S.SCROLL_BUBBLES || []).map((f) => {
@@ -112,17 +108,7 @@ export function buildScroll() {
 // Dipanggil dari rig.js setiap warna atau pola berubah
 export function applyLook(urls, look) {
   A.look = look;
-  A.img.closed.src = urls.s_mata_tidur;
-  A.img.mata.src = urls.s_mata;
-  A.img.pupil.src = urls.s_pupil;
-  A.img.ekor.src = urls.s_ekor;
-  A.img.badan.src = urls.s_badan;
-  A.img.tangan_kiri.src = urls.s_tangan_kiri;
-  A.img.tangan_kanan.src = urls.s_tangan_kanan;
-  A.img.kaki_kiri.src = urls.s_kaki_kiri;
-  A.img.kaki_kanan.src = urls.s_kaki_kanan;
-  A.img.kuping.src = urls.s_kuping;
-  A.img.kepala.src = urls.s_kepala;
+  for (const [id, key] of Object.entries(STAND)) A.img[id].src = urls[key];
 }
 
 // 1-3 garis tisu kecil yang meluncur turun lalu memudar
@@ -177,8 +163,8 @@ export function update(t, dt, active, breath) {
     kick[i] = Math.min(kick[i], 2);
   }
   const off = (v) => Math.max(0, Math.min(2, Math.round(v))) * SC;
-  A.img.tangan_kiri.style.transform = `translateY(${off(kick[0])}px)`;
-  A.img.tangan_kanan.style.transform = `translateY(${off(kick[1])}px)`;
+  A.img.tangan_kiri.style.transform = `translate(${S.STAND_HAND_DX[1] * SC}px, ${off(kick[0])}px)`;
+  A.img.tangan_kanan.style.transform = `translate(${S.STAND_HAND_DX[0] * SC}px, ${off(kick[1])}px)`;
 
   const peak = Math.max(0, Math.round(Math.max(kick[0], kick[1])));
   A.img.tisu.style.transform = `translateX(${Math.min(1, peak) * SC}px)`;

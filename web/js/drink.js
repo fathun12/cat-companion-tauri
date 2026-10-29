@@ -19,7 +19,7 @@ const mkImg = (file) => {
 export function buildDrink() {
   bowl = mkImg('bowl.png');
   tongue = mkImg('lidah.png');
-  tongue.style.transform = `translateY(${-S.DRINK_DROP_PX * S.SCALE}px)`;
+  tongue.style.transform = `translateY(${(S.DRINK_TONGUE_DY - S.DRINK_DROP_PX) * S.SCALE}px)`;
   S.stage.appendChild(bowl);
   S.groups.head.appendChild(tongue);
 }

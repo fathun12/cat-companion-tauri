@@ -4,6 +4,7 @@ import * as Scroll from './scroll.js';
 import * as Typing from './typing.js';
 import * as Celebrate from './celebrate.js';
 import * as Drink from './drink.js';
+import * as Stretch from './stretch.js';
 
 let prevT = 0;
 let sleepAmt = 0;
@@ -22,7 +23,8 @@ function frame(t) {
 
   // ----- Pose yang menimpa gerak normal: perayaan dan minum -----
   const celebrating = Celebrate.isActive(t) && !S.dragging;
-  const drinking = Drink.isActive(t) && !S.dragging && !S.sleeping && !celebrating;
+  const stretching = Stretch.isActive(t) && !S.dragging && !celebrating;
+  const drinking = Drink.isActive(t) && !S.dragging && !S.sleeping && !celebrating && !stretching;
   if (drinking) {
     S.playing = false;
     S.playAmt = 0;
@@ -138,18 +140,19 @@ function frame(t) {
 
   // ----- Pose mengetik, scroll, perayaan, minum -----
   let showTyping = Typing.update(t, dt, breath, blinkEnd);
-  if (celebrating || drinking) {
+  if (celebrating || stretching || drinking) {
     showTyping = false;
     S.typ.box.style.display = 'none';
     S.angryImgs.forEach((img) => (img.style.display = 'none'));
   }
   const showScroll =
-    !celebrating && !drinking && !showTyping && !S.sleeping && !S.dragging && t - S.lastScroll < S.SCROLL_HOLD_MS;
+    !celebrating && !stretching && !drinking && !showTyping && !S.sleeping && !S.dragging && t - S.lastScroll < S.SCROLL_HOLD_MS;
   for (const id in groups) {
-    groups[id].style.display = showTyping || showScroll || celebrating ? 'none' : '';
+    groups[id].style.display = showTyping || showScroll || celebrating || stretching ? 'none' : '';
   }
   Scroll.update(t, dt, showScroll, breath);
   Celebrate.update(t, dt, celebrating, breath);
+  Stretch.update(t, dt, stretching, breath);
   Drink.update(t, drinking);
 
   // ----- Tidur kalau lama tidak ada aktivitas -----
