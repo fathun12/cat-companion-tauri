@@ -346,3 +346,56 @@ Repo ini terpisah dari Electron. Isi bagian 3 sampai 7 di atas masih menggambark
 
 - [27 Okt 2026] Tauri RAM: jendela menu klik kanan sekarang dibuat saat dibutuhkan (timers.rs: ensure_menu, open_menu, menu_pending; dibuang setelah 60 dtk tersembunyi). BROWSER_ARGS di timers.rs HARUS sama persis dengan additionalBrowserArgs di tauri.conf.json dan panel.rs. Hasil ukur setup.exe terpasang (privat): 121,7 MB idle (1 renderer). Rilis GitHub v0.1.0 dibuat manual lewat web.
 
+
+
+## SISTEM ID WARNA, SERAH-TERIMA 29 OKT 2026 (BACA INI DULU)
+Bagian ini MENGGANTIKAN "SERAH-TERIMA ASET BARU (27 Okt 2026)" bila bertentangan. Penulis: AI sesi sebelumnya.
+
+### Prinsip
+- Pemilik adalah ilustrator. Sprite digambar pemilik sudah di posisi akhirnya di kanvas 48x48 (bertumpuk di 0,0). JANGAN mengoordinasi ulang posisi lewat kode kecuali tercatat di bawah ("Pengecualian posisi").
+- Sprite berwarna datar (tanpa anti-alias, alpha hanya 0 atau 255) memakai WARNA ID. Kode mengenali bagian dari HEX warna piksel (tabel di bawah), lalu mewarnainya sesuai tampilan di panel. Piksel dengan hex asing tampil MAGENTA (sengaja, supaya kelihatan).
+- Garis tepi dibuat KODE: filter drop-shadow 1 px di S.stage (rig.js setOutline, S.OUTLINE di state.js). Garis tepi per bagian ada tapi dimatikan (INNER_RING = false di look.js). Pemilik tidak mau garis di dalam siluet. Jangan menyalakannya tanpa diminta.
+- Keyboard typing (keyboard_*_clicked) BUKAN sprite ID: dimuat apa adanya, tidak diwarnai, tidak ikut merah saat panas.
+
+### Tabel warna ID (look.js: ROLE)
+- ekor 005130, badan ffd800, tangan 524b24, telapak tangan cbdbfc, telinga ac3232, kepala 99e550
+- kumis 004715 (diwarnai warna garis tepi, bisa diganti lewat WHISKER_COLOR di look.js)
+- mata 8a6f30 (latar mata, default #ffffff, panel: eyeBg), pupil ffffff (iris, default #5b8cff, panel: eyeColor / eyeColor2)
+- kaki berdiri 76428a, telapak kaki 5b6ee1
+Penamaan kiri/kanan mengikuti KUCING, bukan layar: "kanan" = sisi kiri layar (misal kuping_kanan x9-14), "kiri" = sisi kanan layar.
+
+### Folder aset (web/assets/cat/)
+- model/: sprite idle (badan, ekor, kepala, kumis, kuping_kanan, kuping_kiri, mata, pupil, tangan_kiri, tangan_kanan). kaki_* di sini tidak dipakai.
+- stand/: set berdiri untuk celebrate dan scroll (badan, ekor, kaki_kanan, kaki_kiri, kepala, kumis, kuping_*, mata, pupil) + typing_tangan_depan_kiri/kanan (set tangan untuk celebrate, scroll, stretching).
+- stretch/: pose peregangan (badan, ekor, kaki_belakang_kanan/kiri, kepala, kumis, kuping_*, mata, pupil). Tangan memakai set tangan dari stand/.
+- typing/: badan, kepala, kuping_*, kumis, mata, pupil, hand_left_clicked, hand_right_clicked, keyboard_left_clicked, keyboard_right_clicked. Ekor typing memakai model/ekor.png (digeser TYPE_TAIL).
+- scroll/tisu.png (gulungan tisu, tidak diwarnai), drink/bowl.png dan lidah.png (tidak diwarnai), rig.json (layer idle + titik putar ekor dan kuping).
+- Mata tertutup (kedip) tidak punya file: dibuat kode dari mata.png (satu garis tengah, warna garis tepi). Kunci: mata_tidur, st_mata_tidur, sr_mata_tidur, ty_mata_tidur.
+
+### Cara kerja kode
+- look.js SRC: id sprite -> file. Awalan: (tanpa) = idle/model, st_ = stand, sr_ = stretch, ty_ = typing, hand_kiri/hand_kanan = set tangan. MODEL: peran tiap id (ring/whisker/eye/closed/parts). ROLE: tabel hex. renderModel() mewarnai sprite. HEATED: id yang dibuatkan versi merah (_H) untuk mode panas typing. STAND dan STRETCH: peta layer pose -> kunci URL.
+- Pola panel: kisi per bagian (PART_KEYS: earL, earR, head, body, arm, foot, tail), ukuran = kotak isi sprite acuan (GRID_REF: arm = hand_kiri, foot = st_kaki_kiri, dst). patColor memetakan kisi ke kotak isi sprite secara proporsional. Sprite yang berisi beberapa bagian (ty_hand_left/right, dua kaki) memakai parts:true: kisi dipetakan per bagian bersambung (components()), bukan per sprite. Ini memperbaiki telapak yang bergeser antar frame.
+- rig.js: buildRig, buildTyping (susunan layer typing: ekor, badan, keyboard, tangan, kepala), applyLook (memasang URL ke semua pose).
+- animate.js: loop utama; prioritas pose: celebrate > stretching > minum > typing > scroll > idle. Mochi (regang saat diangkat) adalah transform di S.stage, jadi jalan di semua pose.
+- Pose: idle (rig.json, animate.js), typing (typing.js), scroll (scroll.js), celebrate (celebrate.js, dipicu event 'celebrate'), stretch (stretch.js, dipicu event 'say' jenis stretch: pengingat peregangan dan awal istirahat), minum (drink.js).
+
+### Pengecualian posisi (angka di state.js)
+- TYPE_TAIL: ekor typing digeser [dx, dy] (sprite ekor idle dipakai ulang).
+- TYPE_HANDS: geser halus tangan typing (default 0). Ambil gerak dari gambar clicked.
+- STAND_HAND_DX [kanan, kiri]: tangan di celebrate dan scroll digeser ke samping badan (sprite tangan digambar untuk posisi typing).
+- DRINK_TONGUE_DY: lidah minum. STRETCH_*: parameter animasi stretching.
+
+### Belum diverifikasi / perlu dicek pemilik
+- Pemetaan S.typeFrame 0/1 ke left/right (typing). Tukar bila terbalik.
+- Ekor typing (TYPE_TAIL) dan titik putar ekor (rig.json) baru tebakan.
+- Pose minum belum dituning ulang untuk kepala baru.
+- Animasi stretching (merunduk, badan memanjang, mata menyipit) adalah tafsiran AI atas referensi Comnyang, belum dikonfirmasi pemilik.
+- Tangan terangkat untuk celebrate/scroll (referensi Comnyang: lengan terulur ke samping) butuh sprite tangan horizontal buatan pemilik. Memutar sprite lewat CSS membuat tepi bergerigi.
+- look.json lama: kisi berukuran beda akan direset saat panel dibuka. Kisi baru perlu dilukis ulang.
+
+### Cara kerja dengan pemilik (PENTING)
+- Perintah: PowerShell 5.1 di terminal VS Code, jalankan dari D:\Projects\cat-tauri. Minta file/kode lewat perintah yang menyalin ke clipboard (Set-Clipboard), pemilik menempel ke chat. Jangan minta lewat Desktop. Setiap perintah disertai "Berhasil kalau ...".
+- Perubahan kode: format SEBELUM / SESUDAH dengan teks persis dari file. Sebut file dan di mana blok berakhir. Jangan memberi edit tanpa SEBELUM. Baca kode yang dikirim sebelum mengedit; jangan menebak.
+- Aset baru dipindah lewat perintah terminal (salin, ganti nama, periksa 48x48 dan warna). Jangan mengubah posisi gambar pemilik.
+- Satu pertanyaan per giliran, jangan menanyakan yang sudah dijawab atau terlihat di file. Pemilik cepat marah bila AI menebak atau mengulang; jelaskan penyebab teknis singkat, lalu perbaiki.
+- Rilis: GitHub Releases manual lewat web (v0.1.0 sudah terbit). RAM ukur dari setup.exe terpasang. Argumen WebView2 (BROWSER_ARGS) harus sama persis di tauri.conf.json, panel.rs, timers.rs. File catatan ini ada di docs/SPEC.md.
